@@ -37,8 +37,10 @@ def read_config():
         with open('config.yml', 'r', encoding="utf8") as f:
             data = yaml.load(f, Loader=SafeLoader)
             security_phrases = get_security_phrases(data['security_phrase'])
+            bid_urls = get_bid_url(data['bid_collections'])
             config = {
-                'security_phrases': security_phrases
+                'security_phrases': security_phrases,
+                'bid_urls': bid_urls
             }
             return config
     except (KeyError, TypeError):
@@ -55,3 +57,14 @@ def get_security_phrases(security_phrase):
     """
     security_phrases = security_phrase.split(" ")
     return security_phrases
+
+
+def get_bid_url(bid_collections):
+    """Get bid url from config file.
+
+    :rtype: list
+    """
+    bid_urls = bid_collections.split(" ")
+    for i in range(len(bid_urls)):
+        bid_urls[i] = f'https://blur.io/collection/{bid_urls[i]}/bids'
+    return bid_urls
