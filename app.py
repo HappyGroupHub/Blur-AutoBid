@@ -2,6 +2,7 @@
 import time
 
 from selenium import webdriver
+from selenium.common import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
@@ -50,6 +51,7 @@ def setup_metamask():
         driver_send_keys((By.XPATH, f'//*[@id="import-srp__srp-word-{i}"]'),
                          config.get('security_phrases')[i])
     driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/div[4]/div/button'))
+    time.sleep(2)
     driver_send_keys(
         (By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/div[2]/form/div[1]/label/input'),
         '12345678')
@@ -59,8 +61,9 @@ def setup_metamask():
     driver_click(
         (By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/div[2]/form/div[3]/label/input'))
     driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/div[2]/form/button'))
+    time.sleep(2)
     driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/div[2]/button'))
-    time.sleep(3)
+    time.sleep(1)
     driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/div[2]/button'))
     driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/div[2]/button'))
     driver.close()
@@ -80,7 +83,13 @@ def login_blur():
     driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[3]/div[2]/button[2]'))
     driver_click(
         (By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[2]/div[2]/div[2]/footer/button[2]'))
-    driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[3]/button[2]'))
+
+    # won't 100% show up, so try to click it
+    try:
+        driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[3]/button[2]'))
+    except TimeoutException:
+        pass
+
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
     print('Blur login successfully.')
@@ -98,6 +107,10 @@ def init_sign():
     driver.switch_to.window(driver.window_handles[0])
     driver_click((By.XPATH, '/html/body/div[3]/form/button'))
     print('First sign completed successfully.')
+
+    driver.switch_to.window(driver.window_handles[1])
+    driver.close()
+    driver.switch_to.window(driver.window_handles[0])
     secure_bidding()
 
 
