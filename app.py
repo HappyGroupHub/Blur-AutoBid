@@ -22,7 +22,7 @@ def driver_send_keys(locator, key):
     :param locator: Locator of element.
     :param key: Keys to send.
     """
-    WebDriverWait(driver, 10).until(ec.presence_of_element_located(locator)).send_keys(key)
+    WebDriverWait(driver, 30).until(ec.presence_of_element_located(locator)).send_keys(key)
 
 
 def driver_click(locator):
@@ -30,7 +30,7 @@ def driver_click(locator):
 
     :param locator: Locator of element.
     """
-    WebDriverWait(driver, 10).until(ec.presence_of_element_located(locator)).click()
+    WebDriverWait(driver, 30).until(ec.presence_of_element_located(locator)).click()
 
 
 def driver_get_text(locator):
@@ -39,7 +39,7 @@ def driver_get_text(locator):
     :param locator: Locator of element.
     :return: Text of element.
     """
-    return WebDriverWait(driver, 10).until(ec.presence_of_element_located(locator)).text
+    return WebDriverWait(driver, 30).until(ec.presence_of_element_located(locator)).text
 
 
 def setup_metamask():
@@ -83,13 +83,10 @@ def login_blur():
     driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[3]/div[2]/button[2]'))
     driver_click(
         (By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[2]/div[2]/div[2]/footer/button[2]'))
-
-    # won't 100% show up, so try to click it
     try:
         driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[3]/button[2]'))
     except TimeoutException:
         pass
-
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
     print('Blur login successfully.')
@@ -98,20 +95,75 @@ def login_blur():
 
 def init_sign():
     driver.get('https://blur.io/portfolio')
+    try:
+        driver_click((By.XPATH, '//*[@id="__next"]/div/main/div/button'))
+    except TimeoutException:
+        pass
     driver.execute_script("window.open('');")
     driver.switch_to.window(driver.window_handles[1])
     driver.get('chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/popup.html')
     driver.execute_script("window.scrollBy(0, document.body.scrollHeight)")
-    driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[3]/button[2]'))
+    try:
+        driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[3]/button[2]'))
+    except TimeoutException:
+        pass
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
-    driver_click((By.XPATH, '/html/body/div[3]/form/button'))
-    print('First sign completed successfully.')
+    driver_click((By.XPATH, '/html/body/div[5]/form/button'))
+    try:
+        driver_click((By.XPATH, '//*[@id="METAMASK"]'))
+        driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[3]/button[2]'))
+    except TimeoutException:
+        pass
+    print('Initial sign completed successfully.')
+    try:
+        driver.switch_to.window(driver.window_handles[1])
+        driver.close()
+    except IndexError:
+        pass
+    driver.switch_to.window(driver.window_handles[0])
+    try:
+        driver_click((By.XPATH, '//*[@id="__next"]/div/header/div[3]/div[2]/button'))
+        driver_click((By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/button'))
+        driver_click((By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/button'))
+        driver_click((By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/button'))
+        driver_click((By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/button'))
+        driver_click((By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/button'))
+    except TimeoutException:
+        pass
+    place_init_bids()
 
-    driver.switch_to.window(driver.window_handles[1])
-    driver.close()
-    driver.switch_to.window(driver.window_handles[0])
-    secure_bidding()
+
+def place_init_bids():
+    bid_urls = config.get('bid_urls')
+    for bid_url in bid_urls:
+        driver.get(bid_url)
+        nearest_total_bid_left = driver_get_text((By.XPATH,
+                                                  '/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[1]/div[3]/div[1]'))
+        if float(nearest_total_bid_left) >= 100:
+            place_bid('1')
+        else:
+            place_bid('2')
+
+
+def place_bid(bid_amount_num):
+    bid_price = f'/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[{bid_amount_num}]/div[1]/div/div[2]/div[1]'
+    bid_price = driver_get_text((By.XPATH, bid_price))
+    print(bid_price)
+    driver_click((By.XPATH, '/html/body/div[1]/div/header/div[3]/div[2]/button'))
+    bid_pool_balance = driver_get_text(
+        (By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/div[2]/div[1]/div[1]'))
+    bid_pool_balance = float(bid_pool_balance)
+    print(bid_pool_balance)
+    driver_click((By.XPATH, '/html/body/div/div/main/div/div[4]/button'))
+    driver_send_keys(
+        (By.XPATH, '/html/body/div/div/main/div/div[4]/div/div[2]/div[3]/div[2]/div/input'),
+        bid_price)
+    bid_amount = float(bid_pool_balance) / float(bid_price)
+    driver_send_keys(
+        (By.XPATH, '/html/body/div/div/main/div/div[4]/div/div[2]/div[4]/div[2]/div/input'),
+        bid_amount)
+    driver_click((By.XPATH, '/html/body/div/div/main/div/div[4]/div/div[3]/div/button[2]'))
 
 
 def secure_bidding():
