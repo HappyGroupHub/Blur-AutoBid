@@ -2,7 +2,7 @@
 import time
 
 from selenium import webdriver
-from selenium.common import TimeoutException
+from selenium.common import TimeoutException, ElementClickInterceptedException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
@@ -14,6 +14,7 @@ config = utils.read_config()
 options = webdriver.ChromeOptions()
 options.add_extension('metamask.crx')
 driver = webdriver.Chrome(options=options)
+driver.maximize_window()
 
 
 def driver_send_keys(locator, key):
@@ -76,61 +77,65 @@ def login_blur():
     driver.get('https://blur.io/')
     driver_click((By.XPATH, '//*[@id="__next"]/div/header/div/div[3]/button'))
     driver_click((By.ID, 'METAMASK'))
-
-    driver.execute_script("window.open('');")
+    time.sleep(1)
     driver.switch_to.window(driver.window_handles[1])
-    driver.get('chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/popup.html')
     driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[3]/div[2]/button[2]'))
     driver_click(
         (By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[2]/div[2]/div[2]/footer/button[2]'))
+
+    # try sign in with metamask
     try:
+        WebDriverWait(driver, 1).until(ec.presence_of_element_located(
+            (By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[3]/button[2]')))
         driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[3]/button[2]'))
     except TimeoutException:
         pass
+
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
     print('Blur login successfully.')
-    init_sign()
+    init_blur()
 
 
-def init_sign():
+def init_blur():
     driver.get('https://blur.io/portfolio')
+
+    # try sign in with metamask
     try:
+        WebDriverWait(driver, 1).until(ec.presence_of_element_located(
+            (By.XPATH, '//*[@id="__next"]/div/main/div/button')))
         driver_click((By.XPATH, '//*[@id="__next"]/div/main/div/button'))
-    except TimeoutException:
-        pass
-    driver.execute_script("window.open('');")
-    driver.switch_to.window(driver.window_handles[1])
-    driver.get('chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/popup.html')
-    driver.execute_script("window.scrollBy(0, document.body.scrollHeight)")
-    try:
-        driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[3]/button[2]'))
-    except TimeoutException:
-        pass
-    driver.close()
-    driver.switch_to.window(driver.window_handles[0])
-    driver_click((By.XPATH, '/html/body/div[5]/form/button'))
-    try:
-        driver_click((By.XPATH, '//*[@id="METAMASK"]'))
-        driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[3]/button[2]'))
-    except TimeoutException:
-        pass
-    print('Initial sign completed successfully.')
-    try:
+        driver_click((By.ID, 'METAMASK'))
+        time.sleep(1)
         driver.switch_to.window(driver.window_handles[1])
+        driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[3]/button[2]'))
         driver.close()
-    except IndexError:
+        driver.switch_to.window(driver.window_handles[0])
+    except (TimeoutException, ElementClickInterceptedException):
         pass
-    driver.switch_to.window(driver.window_handles[0])
+
+    # try init blur show mode
+    try:
+        WebDriverWait(driver, 1).until(ec.presence_of_element_located(
+            (By.XPATH, '/html/body/div[5]/form/button')))
+        driver_click((By.XPATH, '/html/body/div[5]/form/button'))
+    except TimeoutException:
+        pass
+
+    # try pass through bid tutorial
     try:
         driver_click((By.XPATH, '//*[@id="__next"]/div/header/div[3]/div[2]/button'))
+        WebDriverWait(driver, 1).until(ec.presence_of_element_located(
+            (By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/button')))
         driver_click((By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/button'))
         driver_click((By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/button'))
         driver_click((By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/button'))
         driver_click((By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/button'))
         driver_click((By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/button'))
-    except TimeoutException:
+    except (TimeoutException, ElementClickInterceptedException):
         pass
+
+    print('Blur initialize successfully.')
     place_init_bids()
 
 
@@ -146,8 +151,8 @@ def place_init_bids():
             place_bid('2')
 
 
-def place_bid(bid_amount_num):
-    bid_price = f'/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[{bid_amount_num}]/div[1]/div/div[2]/div[1]'
+def place_bid(bid_sort_num):
+    bid_price = f'/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[{bid_sort_num}]/div[1]/div/div[2]/div[1]'
     bid_price = driver_get_text((By.XPATH, bid_price))
     print(bid_price)
     driver_click((By.XPATH, '/html/body/div[1]/div/header/div[3]/div[2]/button'))
