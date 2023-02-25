@@ -1,4 +1,5 @@
 """This python will handle some extra functions."""
+import math
 import sys
 from os.path import exists
 
@@ -36,11 +37,14 @@ def read_config():
     try:
         with open('config.yml', 'r', encoding="utf8") as f:
             data = yaml.load(f, Loader=SafeLoader)
-            security_phrases = get_security_phrases(data['security_phrase'])
-            bid_urls = get_bid_url(data['bid_collections'])
+            security_phrases = separate_spaces(data['security_phrase'])
+            followed_collections = data['Followed']
+            for i in range(len(followed_collections)):
+                current = followed_collections[i]
+                current['bid_url'] = get_bid_url(current['collection_name'])
             config = {
                 'security_phrases': security_phrases,
-                'bid_urls': bid_urls
+                'followed_collections': followed_collections,
             }
             return config
     except (KeyError, TypeError):
@@ -50,21 +54,19 @@ def read_config():
         sys.exit()
 
 
-def get_security_phrases(security_phrase):
-    """Read class_id from config file.
+def separate_spaces(input_string):
+    """Separate spaces inside a string.
 
     :rtype: list
     """
-    security_phrases = security_phrase.split(" ")
-    return security_phrases
+    result = input_string.split(" ")
+    return result
 
 
-def get_bid_url(bid_collections):
+def get_bid_url(collection_name):
     """Get bid url from config file.
 
     :rtype: list
     """
-    bid_urls = bid_collections.split(" ")
-    for i in range(len(bid_urls)):
-        bid_urls[i] = f'https://blur.io/collection/{bid_urls[i]}/bids'
-    return bid_urls
+    bid_url = f'https://blur.io/collection/{collection_name}/bids'
+    return bid_url

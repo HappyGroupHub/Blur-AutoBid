@@ -1,4 +1,5 @@
 """This python file will do the AutoClass job."""
+import math
 import time
 
 from selenium import webdriver
@@ -23,7 +24,7 @@ def driver_send_keys(locator, key):
     :param locator: Locator of element.
     :param key: Keys to send.
     """
-    WebDriverWait(driver, 30).until(ec.presence_of_element_located(locator)).send_keys(key)
+    WebDriverWait(driver, 100).until(ec.presence_of_element_located(locator)).send_keys(key)
 
 
 def driver_click(locator):
@@ -31,7 +32,7 @@ def driver_click(locator):
 
     :param locator: Locator of element.
     """
-    WebDriverWait(driver, 30).until(ec.presence_of_element_located(locator)).click()
+    WebDriverWait(driver, 100).until(ec.presence_of_element_located(locator)).click()
 
 
 def driver_get_text(locator):
@@ -40,7 +41,15 @@ def driver_get_text(locator):
     :param locator: Locator of element.
     :return: Text of element.
     """
-    return WebDriverWait(driver, 30).until(ec.presence_of_element_located(locator)).text
+    return WebDriverWait(driver, 100).until(ec.presence_of_element_located(locator)).text
+
+
+def driver_clear_input(locator):
+    """Clear input of element.
+
+    :param locator: Locator of element.
+    """
+    WebDriverWait(driver, 100).until(ec.presence_of_element_located(locator)).clear()
 
 
 def setup_metamask():
@@ -117,8 +126,8 @@ def init_blur():
     # try init blur show mode
     try:
         WebDriverWait(driver, 1).until(ec.presence_of_element_located(
-            (By.XPATH, '/html/body/div[5]/form/button')))
-        driver_click((By.XPATH, '/html/body/div[5]/form/button'))
+            (By.XPATH, '/html/body/div[3]/form/button')))
+        driver_click((By.XPATH, '/html/body/div[3]/form/button'))
     except TimeoutException:
         pass
 
@@ -140,35 +149,69 @@ def init_blur():
 
 
 def place_init_bids():
-    bid_urls = config.get('bid_urls')
-    for bid_url in bid_urls:
-        driver.get(bid_url)
-        nearest_total_bid_left = driver_get_text((By.XPATH,
-                                                  '/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[1]/div[3]/div[1]'))
-        if float(nearest_total_bid_left) >= 100:
-            place_bid('1')
-        else:
-            place_bid('2')
+    print('Start placing initial bids. \n')
+    print('-----------------------------------------------------')
+    collections = config.get('followed_collections')
+    for current_collection in range(len(collections)):
+        driver.get(collections[current_collection].get('bid_url'))
+        bid_amount_left_to_stop = collections[current_collection].get('bid_amount_left_to_stop')
+        total_bid_left = driver_get_text((By.XPATH,
+                                          '/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[1]/div[3]/div[1]'))
+        total_bid_left = float(total_bid_left)
+        bid_sort_num = 1
+        while True:
+            if total_bid_left >= bid_amount_left_to_stop:
+                place_bid(str(bid_sort_num))
+                break
+            else:
+                sum_next_total = driver_get_text((By.XPATH,
+                                                  f'/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[{bid_sort_num}]/div[3]/div[1]'))
+                total_bid_left += float(sum_next_total)
+                bid_sort_num += 1
+                continue
+    print('Initial bids placed successfully.')
+    time.sleep(1000)
+    secure_bidding()
 
 
 def place_bid(bid_sort_num):
     bid_price = f'/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[{bid_sort_num}]/div[1]/div/div[2]/div[1]'
     bid_price = driver_get_text((By.XPATH, bid_price))
-    print(bid_price)
-    driver_click((By.XPATH, '/html/body/div[1]/div/header/div[3]/div[2]/button'))
+    driver_click((By.XPATH, '//*[@id="__next"]/div/header/div[3]/div[2]/button'))
     bid_pool_balance = driver_get_text(
         (By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/div[2]/div[1]/div[1]'))
-    bid_pool_balance = float(bid_pool_balance)
-    print(bid_pool_balance)
-    driver_click((By.XPATH, '/html/body/div/div/main/div/div[4]/button'))
-    driver_send_keys(
-        (By.XPATH, '/html/body/div/div/main/div/div[4]/div/div[2]/div[3]/div[2]/div/input'),
-        bid_price)
-    bid_amount = float(bid_pool_balance) / float(bid_price)
-    driver_send_keys(
-        (By.XPATH, '/html/body/div/div/main/div/div[4]/div/div[2]/div[4]/div[2]/div/input'),
-        bid_amount)
-    driver_click((By.XPATH, '/html/body/div/div/main/div/div[4]/div/div[3]/div/button[2]'))
+    collection_name = driver_get_text((By.XPATH, '//*[@id="OVERLINE"]/div/div[1]/div[2]/div'))
+    if float(bid_pool_balance) < float(bid_price):
+        print(f'Not enough balance to place bid! [{collection_name}]')
+        print(f'Current balance: {bid_pool_balance}')
+        print(f'Bid price needed: {bid_price}')
+        print('-----------------------------------------------------')
+    else:
+        driver_click((By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/button'))
+        driver_send_keys(
+            (By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[2]/div[3]/div[2]/div/input'),
+            bid_price)
+        bid_amount = float(bid_pool_balance) / float(bid_price)
+        bid_amount = math.floor(bid_amount)
+        driver_clear_input(
+            (By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[2]/div[4]/div[2]/div/input'))
+        driver_send_keys(
+            (By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[2]/div[4]/div[2]/div/input'),
+            bid_amount)
+        driver_click((By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[3]/div/button[2]'))
+        sign_transaction()
+        collection_name = driver_get_text((By.XPATH, '//*[@id="OVERLINE"]/div/div[1]/div[2]/div'))
+        print(f'Initial bid success! [{collection_name}]')
+        print(
+            f'Placed with bid price: {bid_price} x {bid_amount} = {float(bid_price) * bid_amount}ETH')
+        print('-----------------------------------------------------')
+
+
+def sign_transaction():
+    time.sleep(3)
+    driver.switch_to.window(driver.window_handles[1])
+    driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[4]/button[2]'))
+    driver.switch_to.window(driver.window_handles[0])
 
 
 def secure_bidding():
