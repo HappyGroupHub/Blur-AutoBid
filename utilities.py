@@ -1,5 +1,4 @@
 """This python will handle some extra functions."""
-import math
 import sys
 from os.path import exists
 

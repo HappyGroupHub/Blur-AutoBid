@@ -1,4 +1,4 @@
-"""This python file will do the AutoClass job."""
+"""This is the main python file of the project."""
 import math
 import time
 
@@ -11,6 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 import utilities as utils
 
 config = utils.read_config()
+bid_placed = dict()
 
 options = webdriver.ChromeOptions()
 options.add_extension('metamask.crx')
@@ -123,6 +124,7 @@ def init_blur():
     except (TimeoutException, ElementClickInterceptedException):
         pass
 
+    time.sleep(3)
     # try init blur show mode
     try:
         WebDriverWait(driver, 1).until(ec.presence_of_element_located(
@@ -149,7 +151,8 @@ def init_blur():
 
 
 def place_init_bids():
-    print('Start placing initial bids. \n')
+    print('Start placing initial bids.')
+    print('-----------------------------------------------------\n')
     print('-----------------------------------------------------')
     collections = config.get('followed_collections')
     for current_collection in range(len(collections)):
@@ -165,12 +168,46 @@ def place_init_bids():
                 break
             else:
                 sum_next_total = driver_get_text((By.XPATH,
-                                                  f'/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[{bid_sort_num}]/div[3]/div[1]'))
+                                                  f'/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[{bid_sort_num + 1}]/div[3]/div[1]'))
                 total_bid_left += float(sum_next_total)
                 bid_sort_num += 1
                 continue
-    print('Initial bids placed successfully.')
-    time.sleep(1000)
+    print('Initial bids placed successfully. \n')
+    secure_bidding()
+
+
+def secure_bidding():
+    print('Start secure your bidding!')
+    print('-----------------------------------------------------')
+    collections = config.get('followed_collections')
+    for current_collection in range(len(collections)):
+        driver.get(collections[current_collection].get('bid_url'))
+        bid_amount_left_to_stop = collections[current_collection].get('bid_amount_left_to_stop')
+        total_bid_left = driver_get_text((By.XPATH,
+                                          '/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[1]/div[3]/div[1]'))
+        total_bid_left = float(total_bid_left)
+        collection_name = driver_get_text((By.XPATH, '//*[@id="OVERLINE"]/div/div[1]/div[2]/div'))
+        bid_sort_num = 1
+        while True:
+            if total_bid_left >= bid_amount_left_to_stop:
+                bid_price = f'/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[{bid_sort_num}]/div[1]/div/div[2]/div[1]'
+                bid_price = driver_get_text((By.XPATH, bid_price))
+                if not bid_price == bid_placed.get(collection_name):
+                    if not bid_placed.get(collection_name) == 0:
+                        cancel_bid()
+                        driver.get(collections[current_collection].get('bid_url'))
+                    place_bid(str(bid_sort_num))
+                    break
+                else:
+                    print(f'Your bid on {collection_name} is secured!')
+                    break
+            else:
+                sum_next_total = driver_get_text((By.XPATH,
+                                                  f'/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[{bid_sort_num + 1}]/div[3]/div[1]'))
+                total_bid_left += float(sum_next_total)
+                bid_sort_num += 1
+                continue
+    time.sleep(10)
     secure_bidding()
 
 
@@ -182,6 +219,7 @@ def place_bid(bid_sort_num):
         (By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/div[2]/div[1]/div[1]'))
     collection_name = driver_get_text((By.XPATH, '//*[@id="OVERLINE"]/div/div[1]/div[2]/div'))
     if float(bid_pool_balance) < float(bid_price):
+        bid_placed[collection_name] = 0
         print(f'Not enough balance to place bid! [{collection_name}]')
         print(f'Current balance: {bid_pool_balance}')
         print(f'Bid price needed: {bid_price}')
@@ -201,10 +239,18 @@ def place_bid(bid_sort_num):
         driver_click((By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[3]/div/button[2]'))
         sign_transaction()
         collection_name = driver_get_text((By.XPATH, '//*[@id="OVERLINE"]/div/div[1]/div[2]/div'))
-        print(f'Initial bid success! [{collection_name}]')
+        bid_placed[collection_name] = float(bid_price)
+        print(f'Bid placed success! [{collection_name}]')
         print(
-            f'Placed with bid price: {bid_price} x {bid_amount} = {float(bid_price) * bid_amount}ETH')
+            f'Placed with: {bid_price} x {bid_amount} = {float(bid_price) * bid_amount}ETH')
         print('-----------------------------------------------------')
+
+
+def cancel_bid():
+    time.sleep(3)
+    driver_click((By.XPATH, '//*[@id="tab-your-bids-(1)"]'))
+    driver_click((By.XPATH, '/html/body/div/div/main/div/div[4]/div/div[2]/div/div[2]/div/div/a/div[7]/div/button'))
+    time.sleep(3)
 
 
 def sign_transaction():
@@ -212,14 +258,8 @@ def sign_transaction():
     driver.switch_to.window(driver.window_handles[1])
     driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[4]/button[2]'))
     driver.switch_to.window(driver.window_handles[0])
-
-
-def secure_bidding():
-    bid_urls = config.get('bid_urls')
-    for bid_url in bid_urls:
-        driver.get(bid_url)
+    time.sleep(3)
 
 
 if __name__ == '__main__':
     setup_metamask()
-    time.sleep(10000)
