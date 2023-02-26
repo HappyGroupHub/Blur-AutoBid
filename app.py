@@ -200,7 +200,7 @@ def secure_bidding():
                 previous_bid_price = float(previous_bid_price)
                 current_time = datetime.now().strftime('[%m/%d %H:%M:%S]')
                 if not bid_price == previous_bid_price:
-                    if not bid_placed.get(collection_name) == 0:
+                    if not previous_bid_price == 0:
                         print('-----------------------------------------------------')
                         print(current_time)
                         print(f'Previous bid price on {collection_name} is {previous_bid_price}')
