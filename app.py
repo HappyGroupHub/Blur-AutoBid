@@ -156,6 +156,7 @@ def place_init_bids():
     print('-----------------------------------------------------')
     collections = config.get('followed_collections')
     for current_collection in range(len(collections)):
+        time.sleep(1)
         driver.get(collections[current_collection].get('bid_url'))
         bid_amount_left_to_stop = collections[current_collection].get('bid_amount_left_to_stop')
         total_bid_left = driver_get_text((By.XPATH,
@@ -173,14 +174,15 @@ def place_init_bids():
                 bid_sort_num += 1
                 continue
     print('Initial bids placed successfully. \n')
+    print('Start secure your bidding!')
+    print('-----------------------------------------------------')
     secure_bidding()
 
 
 def secure_bidding():
-    print('Start secure your bidding!')
-    print('-----------------------------------------------------')
     collections = config.get('followed_collections')
     for current_collection in range(len(collections)):
+        time.sleep(1)
         driver.get(collections[current_collection].get('bid_url'))
         bid_amount_left_to_stop = collections[current_collection].get('bid_amount_left_to_stop')
         total_bid_left = driver_get_text((By.XPATH,
@@ -190,11 +192,16 @@ def secure_bidding():
         bid_sort_num = 1
         while True:
             if total_bid_left >= bid_amount_left_to_stop:
-                bid_price = f'/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[{bid_sort_num}]/div[1]/div/div[2]/div[1]'
-                bid_price = driver_get_text((By.XPATH, bid_price))
-                if not bid_price == bid_placed.get(collection_name):
+                bid_price = driver_get_text((By.XPATH,
+                                             f'/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[{bid_sort_num}]/div[1]/div/div[2]/div[1]'))
+                bid_price = float(bid_price)
+                previous_bid_price = bid_placed.get(collection_name)
+                previous_bid_price = float(previous_bid_price)
+                if not bid_price == previous_bid_price:
                     if not bid_placed.get(collection_name) == 0:
-                        cancel_bid()
+                        print(f'Previous bid price on {collection_name} is {bid_price}')
+                        print(f'New bid price on {collection_name} is {bid_price}')
+                        cancel_bid(collections[current_collection].get('contract_address'))
                         driver.get(collections[current_collection].get('bid_url'))
                     place_bid(str(bid_sort_num))
                     break
@@ -207,7 +214,7 @@ def secure_bidding():
                 total_bid_left += float(sum_next_total)
                 bid_sort_num += 1
                 continue
-    time.sleep(10)
+    time.sleep(5)
     secure_bidding()
 
 
@@ -246,17 +253,24 @@ def place_bid(bid_sort_num):
         print('-----------------------------------------------------')
 
 
-def cancel_bid():
-    time.sleep(3)
-    driver_click((By.XPATH, '//*[@id="tab-your-bids-(1)"]'))
-    driver_click((By.XPATH, '/html/body/div/div/main/div/div[4]/div/div[2]/div/div[2]/div/div/a/div[7]/div/button'))
+def cancel_bid(contract_address):
+    driver.get(f'https://blur.io/portfolio/bids?contractAddress={contract_address}')
+    time.sleep(1)
+    driver_click((By.XPATH,
+                  '/html/body/div/div/main/div/div[4]/div/div[2]/div/div[2]/div/div/a/div[7]/div/button'))
     time.sleep(3)
 
 
 def sign_transaction():
     time.sleep(3)
     driver.switch_to.window(driver.window_handles[1])
-    driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[4]/button[2]'))
+    try:
+        WebDriverWait(driver, 1).until(ec.presence_of_element_located(
+            (By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[3]/div[1]')))
+        driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div[3]/div[1]'))
+    except TimeoutException:
+        pass
+    driver_click((By.XPATH, '/html/body/div[1]/div/div[2]/div/div[4]/button[2]'))
     driver.switch_to.window(driver.window_handles[0])
     time.sleep(3)
 
