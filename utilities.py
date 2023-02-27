@@ -11,10 +11,22 @@ def config_file_generator():
     with open('config.yml', 'w', encoding="utf8") as f:
         f.write("""# ++--------------------------------++
 # | Blur-AutoBid                     |
-# | Made by LD (MIT License)         |
+# | Made by LD                       |
 # ++--------------------------------++
 
+security_phrase: ''
 
+# Bid Collection
+# Copy collection_name from url, e.g. https://blur.io/collection/>>beanzofficial<<
+# Follow as many collections as you want, below are examples.
+Followed:
+  - collection_name: 'beanzofficial'
+    bid_amount_left_to_stop: 500
+    contract_address: '0x306b1ea3ecdf94ab739f1910bbda052ed4a9f949'
+
+  - collection_name: 'murakami-flowers-2022-official'
+    bid_amount_left_to_stop: 100
+    contract_address: '0x7d8820fa92eb1584636f4f5b8515b5476b75171a'
 """
                 )
     sys.exit()
