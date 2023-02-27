@@ -26,7 +26,7 @@ def driver_send_keys(locator, key):
     :param locator: Locator of element.
     :param key: Keys to send.
     """
-    WebDriverWait(driver, 100).until(ec.presence_of_element_located(locator)).send_keys(key)
+    WebDriverWait(driver, 5).until(ec.presence_of_element_located(locator)).send_keys(key)
 
 
 def driver_click(locator):
@@ -34,7 +34,7 @@ def driver_click(locator):
 
     :param locator: Locator of element.
     """
-    WebDriverWait(driver, 100).until(ec.presence_of_element_located(locator)).click()
+    WebDriverWait(driver, 5).until(ec.presence_of_element_located(locator)).click()
 
 
 def driver_get_text(locator):
@@ -43,7 +43,7 @@ def driver_get_text(locator):
     :param locator: Locator of element.
     :return: Text of element.
     """
-    return WebDriverWait(driver, 100).until(ec.presence_of_element_located(locator)).text
+    return WebDriverWait(driver, 5).until(ec.presence_of_element_located(locator)).text
 
 
 def driver_clear_input(locator):
@@ -51,7 +51,7 @@ def driver_clear_input(locator):
 
     :param locator: Locator of element.
     """
-    WebDriverWait(driver, 100).until(ec.presence_of_element_located(locator)).clear()
+    WebDriverWait(driver, 5).until(ec.presence_of_element_located(locator)).clear()
 
 
 def setup_metamask():
@@ -233,9 +233,22 @@ def secure_bidding():
 def place_bid(bid_sort_num, collection):
     bid_price = f'/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[{bid_sort_num}]/div[1]/div/div[2]/div[1]'
     bid_price = driver_get_text((By.XPATH, bid_price))
-    driver_click((By.XPATH, '//*[@id="__next"]/div/header/div[3]/div[2]/button'))
-    bid_pool_balance = driver_get_text(
-        (By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/div[2]/div[1]/div[1]'))
+    bid_pool_balance = str
+
+    # Trying to get bid pool balance
+    while True:
+        try:
+            bid_pool_balance = driver_get_text(
+                (By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/div[2]/div[1]/div[1]'))
+            break
+        except TimeoutException:
+            print('Error retrieving balance. Retrying...')
+            driver.refresh()
+            time.sleep(1)
+            driver_click((By.XPATH, '//*[@id="__next"]/div/header/div[3]/div[2]/button'))
+            time.sleep(1)
+            continue
+
     collection_name = driver_get_text((By.XPATH, '//*[@id="OVERLINE"]/div/div[1]/div[2]/div'))
     current_time = datetime.now().strftime('[%m/%d %H:%M:%S]')
     if float(bid_pool_balance) < float(bid_price):
