@@ -235,18 +235,16 @@ def place_bid(bid_sort_num, collection):
     bid_price = driver_get_text((By.XPATH, bid_price))
     bid_pool_balance = str
 
-    # Trying to get bid pool balance
+    # Trying to get bid pool balance, xpath may change if bid is placed or canceled
     while True:
         try:
             bid_pool_balance = driver_get_text(
                 (By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/div[2]/div[1]/div[1]'))
             break
         except TimeoutException:
-            print('Error retrieving balance. Retrying...')
             driver.refresh()
             time.sleep(1)
             driver_click((By.XPATH, '//*[@id="__next"]/div/header/div[3]/div[2]/button'))
-            time.sleep(1)
             continue
 
     collection_name = driver_get_text((By.XPATH, '//*[@id="OVERLINE"]/div/div[1]/div[2]/div'))
