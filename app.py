@@ -176,7 +176,13 @@ def place_init_bids():
     print('Initial bids placed successfully. \n')
     print('Start secure your bidding!')
     print('-----------------------------------------------------')
-    secure_bidding()
+    while True:
+        try:
+            secure_bidding()
+        except Exception as error:
+            print(error)
+            print('Error occurred. Restarting secure bidding.')
+            continue
 
 
 def secure_bidding():
@@ -231,8 +237,12 @@ def place_bid(bid_sort_num, collection):
     bid_pool_balance = driver_get_text(
         (By.XPATH, '/html/body/div[2]/div/div/div[2]/div[2]/div[2]/div[1]/div[1]'))
     collection_name = driver_get_text((By.XPATH, '//*[@id="OVERLINE"]/div/div[1]/div[2]/div'))
+    current_time = datetime.now().strftime('[%m/%d %H:%M:%S]')
     if float(bid_pool_balance) < float(bid_price):
-        bid_placed[collection] = 0
+        if collection not in bid_placed:
+            bid_placed[collection] = 0
+        print('-----------------------------------------------------')
+        print(current_time)
         print(f'Not enough balance to place bid! [{collection_name}]')
         print(f'Current balance: {bid_pool_balance}')
         print(f'Bid price needed: {bid_price}')
