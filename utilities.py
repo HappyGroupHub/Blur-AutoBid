@@ -20,11 +20,11 @@ security_phrase: ''
 # Copy collection_name from url, e.g. https://blur.io/collection/>>beanzofficial<<
 # Follow as many collections as you want, below are examples.
 Followed:
-  - collection_name: 'beanzofficial'
+  - collection: 'beanzofficial'
     bid_amount_left_to_stop: 500
     contract_address: '0x306b1ea3ecdf94ab739f1910bbda052ed4a9f949'
 
-  - collection_name: 'murakami-flowers-2022-official'
+  - collection: 'murakami-flowers-2022-official'
     bid_amount_left_to_stop: 100
     contract_address: '0x7d8820fa92eb1584636f4f5b8515b5476b75171a'
 """
@@ -51,8 +51,8 @@ def read_config():
             security_phrases = separate_spaces(data['security_phrase'])
             followed_collections = data['Followed']
             for i in range(len(followed_collections)):
-                current = followed_collections[i]
-                current['bid_url'] = get_bid_url(current['collection_name'])
+                current_collection = followed_collections[i]
+                current_collection['bid_url'] = get_bid_url(current_collection['collection'])
             config = {
                 'security_phrases': security_phrases,
                 'followed_collections': followed_collections,
@@ -74,10 +74,10 @@ def separate_spaces(input_string):
     return result
 
 
-def get_bid_url(collection_name):
+def get_bid_url(collection):
     """Get bid url from config file.
 
     :rtype: list
     """
-    bid_url = f'https://blur.io/collection/{collection_name}/bids'
+    bid_url = f'https://blur.io/collection/{collection}/bids'
     return bid_url

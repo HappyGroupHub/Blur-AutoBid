@@ -13,6 +13,7 @@ import utilities as utils
 
 config = utils.read_config()
 bid_placed = dict()
+is_bid_placed = dict()
 
 options = webdriver.ChromeOptions()
 options.add_extension('metamask.crx')
@@ -157,15 +158,16 @@ def place_init_bids():
     collections = config.get('followed_collections')
     for current_collection in range(len(collections)):
         time.sleep(5)
-        driver.get(collections[current_collection].get('bid_url'))
-        bid_amount_left_to_stop = collections[current_collection].get('bid_amount_left_to_stop')
+        current_collection = collections[current_collection]
+        driver.get(current_collection.get('bid_url'))
+        bid_amount_left_to_stop = current_collection.get('bid_amount_left_to_stop')
         total_bid_left = driver_get_text((By.XPATH,
                                           '/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[1]/div[3]/div[1]'))
         total_bid_left = float(total_bid_left)
         bid_sort_num = 1
         while True:
             if total_bid_left >= bid_amount_left_to_stop:
-                place_bid(str(bid_sort_num), collections[current_collection].get('collection_name'))
+                place_bid(str(bid_sort_num), current_collection.get('collection'))
                 break
             else:
                 sum_next_total = driver_get_text((By.XPATH,
@@ -188,9 +190,10 @@ def place_init_bids():
 def secure_bidding():
     collections = config.get('followed_collections')
     for current_collection in range(len(collections)):
-        time.sleep(5)
-        driver.get(collections[current_collection].get('bid_url'))
-        bid_amount_left_to_stop = collections[current_collection].get('bid_amount_left_to_stop')
+        time.sleep(3)
+        current_collection = collections[current_collection]
+        driver.get(current_collection.get('bid_url'))
+        bid_amount_left_to_stop = current_collection.get('bid_amount_left_to_stop')
         total_bid_left = driver_get_text((By.XPATH,
                                           '/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[1]/div[3]/div[1]'))
         total_bid_left = float(total_bid_left)
@@ -202,7 +205,7 @@ def secure_bidding():
                                              f'/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[{bid_sort_num}]/div[1]/div/div[2]/div[1]'))
                 bid_price = float(bid_price)
                 previous_bid_price = bid_placed.get(
-                    collections[current_collection].get('collection_name'))
+                    current_collection.get('collection'))
                 previous_bid_price = float(previous_bid_price)
                 current_time = datetime.now().strftime('[%m/%d %H:%M:%S]')
                 if not bid_price == previous_bid_price:
@@ -212,10 +215,11 @@ def secure_bidding():
                         print(f'Previous bid price on {collection_name} is {previous_bid_price}')
                         print(f'New bid price on {collection_name} is {bid_price}')
                         print('-----------------------------------------------------')
-                        cancel_bid(collections[current_collection].get('contract_address'))
-                        driver.get(collections[current_collection].get('bid_url'))
+                        if is_bid_placed.get(current_collection.get('collection')):
+                            cancel_bid(current_collection.get('collection'))
+                            is_bid_placed[current_collection.get('collection')] = False
                     place_bid(str(bid_sort_num),
-                              collections[current_collection].get('collection_name'))
+                              current_collection.get('collection'))
                     break
                 else:
                     print(f'{current_time} Your bid on {collection_name} is secured!')
@@ -275,6 +279,7 @@ def place_bid(bid_sort_num, collection):
         sign_transaction()
         collection_name = driver_get_text((By.XPATH, '//*[@id="OVERLINE"]/div/div[1]/div[2]/div'))
         bid_placed[collection] = float(bid_price)
+        is_bid_placed[collection] = True
         print(f'Bid placed success! [{collection_name}]')
         print(
             f'Placed with: {bid_price} x {bid_amount} = {float(bid_price) * bid_amount}ETH')
