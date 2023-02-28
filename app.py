@@ -82,7 +82,6 @@ def setup_metamask():
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
     print('Metamask setup successfully.')
-    login_blur()
 
 
 def login_blur():
@@ -106,7 +105,6 @@ def login_blur():
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
     print('Blur login successfully.')
-    init_blur()
 
 
 def init_blur():
@@ -150,7 +148,6 @@ def init_blur():
         pass
 
     print('Blur initialize successfully.')
-    place_init_bids()
 
 
 def place_init_bids():
@@ -188,13 +185,6 @@ def place_init_bids():
     print('Initial bids placed successfully. \n')
     print('Start secure your bidding!')
     print('-----------------------------------------------------')
-    while True:
-        try:
-            secure_bidding()
-        except Exception as error:
-            print(error)
-            print('Error occurred. Restarting secure bidding.')
-            continue
 
 
 def secure_bidding():
@@ -315,6 +305,25 @@ def cancel_bid(contract_address):
     time.sleep(3)
 
 
+def cancel_all_bids():
+    collections = config.get('followed_collections')
+    for current_collection in range(len(collections)):
+        time.sleep(config.get('check_interval'))
+        current_collection = collections[current_collection]
+        driver.get(
+            f'https://blur.io/portfolio/bids?contractAddress={current_collection.get("contract_address")}')
+        time.sleep(1)
+
+        # Try to cancel bid, if no bid is placed, pass
+        try:
+            driver_click((By.XPATH,
+                          '/html/body/div/div/main/div/div[4]/div/div[2]/div/div[2]/div/div/a/div[7]/div/button'))
+        except TimeoutException:
+            pass
+
+        time.sleep(3)
+
+
 def sign_transaction():
     time.sleep(3)
     driver.switch_to.window(driver.window_handles[1])
@@ -331,3 +340,30 @@ def sign_transaction():
 
 if __name__ == '__main__':
     setup_metamask()
+    login_blur()
+    init_blur()
+    place_init_bids()
+
+    # Secure bidding
+    while True:
+        try:
+            secure_bidding()
+        except Exception as error:
+            print('-----------------------------------------------------')
+            print(error)
+            print('-----------------------------------------------------')
+            print('Error occurred. Restarting the whole process...')
+            print('Closing redundant windows now.')
+            for window in driver.window_handles[1:]:
+                driver.switch_to.window(window)
+                driver.close()
+            driver.switch_to.window(driver.window_handles[0])
+            print('All redundant windows closed.')
+            print('Canceling all bids now.')
+            cancel_all_bids()
+            bid_placed.clear()
+            is_bid_placed.clear()
+            print('All bids canceled.')
+            print('Now placing initial bids again.')
+            place_init_bids()
+            continue
