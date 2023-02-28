@@ -211,12 +211,22 @@ def secure_bidding():
                 if not bid_price == previous_bid_price:
                     if not previous_bid_price == 0:
                         print('-----------------------------------------------------')
-                        print(current_time)
+                        print(f'{current_time} Bid price changed!')
                         print(f'Previous bid price on {collection_name} is {previous_bid_price}')
                         print(f'New bid price on {collection_name} is {bid_price}')
                         print('-----------------------------------------------------')
                         if is_bid_placed.get(current_collection.get('collection')):
-                            cancel_bid(current_collection.get('contract_address'))
+
+                            # try to cancel bid, may encounter error if you bid that NFT successfully
+                            try:
+                                cancel_bid(current_collection.get('contract_address'))
+                            except TimeoutException:
+                                print('Cancel bid failed!')
+                                print(f'Your bid on {collection_name} might get accepted')
+                                print(f'Please check your wallet activity to confirm')
+                                print('Now continue to secure your bidding...\n')
+                                bid_placed[current_collection.get('collection')] = 0
+
                             is_bid_placed[current_collection.get('collection')] = False
                             driver.get(current_collection.get('bid_url'))
                             time.sleep(3)
