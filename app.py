@@ -228,6 +228,8 @@ def secure_bidding():
                         if is_bid_placed.get(current_collection.get('collection')):
                             cancel_bid(current_collection.get('contract_address'))
                             is_bid_placed[current_collection.get('collection')] = False
+                            driver.get(current_collection.get('bid_url'))
+                            time.sleep(3)
                     place_bid(str(bid_sort_num),
                               current_collection.get('collection'))
                     break
