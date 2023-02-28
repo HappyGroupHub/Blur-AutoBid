@@ -191,7 +191,7 @@ def place_init_bids():
 def secure_bidding():
     collections = config.get('followed_collections')
     for current_collection in range(len(collections)):
-        time.sleep(3)
+        time.sleep(config.get('check_interval'))
         current_collection = collections[current_collection]
         driver.get(current_collection.get('bid_url'))
         bid_amount_left_to_stop = current_collection.get('bid_amount_left_to_stop')

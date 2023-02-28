@@ -16,9 +16,16 @@ def config_file_generator():
 
 security_phrase: ''
 
+# Check Interval(in seconds)
+# The lower the interval, the more frequently the program will check for new bids.
+# But the more frequently the program checks, the more likely it will be blocked by Blur.
+# It is recommended to set the interval to 5 seconds.
+check_interval: 5
+
 # Bid Collection
-# Copy collection_name from url, e.g. https://blur.io/collection/>>beanzofficial<<
+# Copy collection_name from url, e.g. https://blur.io/collection/>> beanzofficial <<
 # Follow as many collections as you want, below are examples.
+# You can find contract_address by pressing the "EtherScan" icon on the collection page.
 Followed:
   - collection: 'beanzofficial'
     bid_amount_left_to_stop: 500
@@ -55,6 +62,7 @@ def read_config():
                 current_collection['bid_url'] = get_bid_url(current_collection['collection'])
             config = {
                 'security_phrases': security_phrases,
+                'check_interval': data['check_interval'],
                 'followed_collections': followed_collections,
             }
             return config
