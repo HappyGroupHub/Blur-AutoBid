@@ -127,6 +127,7 @@ def init_blur():
         pass
 
     time.sleep(3)
+
     # try init blur show mode
     try:
         WebDriverWait(driver, 1).until(ec.presence_of_element_located(
@@ -216,7 +217,7 @@ def secure_bidding():
                         print(f'New bid price on {collection_name} is {bid_price}')
                         print('-----------------------------------------------------')
                         if is_bid_placed.get(current_collection.get('collection')):
-                            cancel_bid(current_collection.get('collection'))
+                            cancel_bid(current_collection.get('contract_address'))
                             is_bid_placed[current_collection.get('collection')] = False
                     place_bid(str(bid_sort_num),
                               current_collection.get('collection'))
