@@ -171,11 +171,20 @@ def place_init_bids():
                 place_bid(str(bid_sort_num), current_collection.get('collection'))
                 break
             else:
-                sum_next_total = driver_get_text((By.XPATH,
-                                                  f'/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[{bid_sort_num + 1}]/div[3]/div[1]'))
-                total_bid_left += float(sum_next_total)
                 bid_sort_num += 1
+
+                # try to get next bid price, may encounter error if bid price is too far
+                try:
+                    next_total = driver_get_text((By.XPATH,
+                                                  f'//*[@id="collection-main"]/div[2]/div/div[2]/div/div/div[{bid_sort_num}]/div[3]/div[1]'))
+                    total_bid_left += float(next_total)
+                except TimeoutException:
+                    print(f'Bid price is too far to place [{current_collection.get("collection")}]')
+                    print('Please try lower bid_amount_left_to_stop')
+                    break
+
                 continue
+
     print('Initial bids placed successfully. \n')
     print('Start secure your bidding!')
     print('-----------------------------------------------------')
@@ -226,10 +235,18 @@ def secure_bidding():
                     print(f'{current_time} Your bid on {collection_name} is secured!')
                     break
             else:
-                sum_next_total = driver_get_text((By.XPATH,
-                                                  f'/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[{bid_sort_num + 1}]/div[3]/div[1]'))
-                total_bid_left += float(sum_next_total)
                 bid_sort_num += 1
+
+                # try to get next bid price, may encounter error if bid price is too far
+                try:
+                    next_total = driver_get_text((By.XPATH,
+                                                  f'//*[@id="collection-main"]/div[2]/div/div[2]/div/div/div[{bid_sort_num}]/div[3]/div[1]'))
+                    total_bid_left += float(next_total)
+                except TimeoutException:
+                    print(f'Bid price is too far to place [{current_collection.get("collection")}]')
+                    print('Please try lower bid_amount_left_to_stop')
+                    break
+
                 continue
     time.sleep(5)
     secure_bidding()
@@ -239,6 +256,7 @@ def place_bid(bid_sort_num, collection):
     bid_price = f'/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[{bid_sort_num}]/div[1]/div/div[2]/div[1]'
     bid_price = driver_get_text((By.XPATH, bid_price))
     bid_pool_balance = str
+    driver_click((By.XPATH, '//*[@id="__next"]/div/header/div[3]/div[2]/button'))
 
     # Trying to get bid pool balance, xpath may change if bid is placed or canceled
     while True:
@@ -265,7 +283,7 @@ def place_bid(bid_sort_num, collection):
         print('-----------------------------------------------------')
     else:
         driver_click((By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/button'))
-        time.sleep(3)
+        time.sleep(1)
         driver_send_keys(
             (By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[2]/div[3]/div[2]/div/input'),
             bid_price)

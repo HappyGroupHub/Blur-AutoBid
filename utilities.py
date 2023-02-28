@@ -23,7 +23,7 @@ security_phrase: ''
 check_interval: 5
 
 # Bid Collection
-# Copy collection_name from url, e.g. https://blur.io/collection/>> beanzofficial <<
+# Copy collection name from url, e.g. https://blur.io/collection/>> beanzofficial <<
 # Follow as many collections as you want, below are examples.
 # You can find contract_address by pressing the "EtherScan" icon on the collection page.
 Followed:
