@@ -200,11 +200,11 @@ def place_init_bids():
             print('Start secure your bidding!')
             print('-----------------------------------------------------')
             break
-        except Exception as error_init_bid:
+        except (Exception, IndexError) as error_init_bid:
             print('-----------------------------------------------------')
             print(error_init_bid)
             print('-----------------------------------------------------')
-            print('Error occurred. Restarting the whole process...')
+            print('Error occurred while placing initial bids.')
             print('Closing redundant windows now.')
             for init_bid_window in driver.window_handles[1:]:
                 driver.switch_to.window(init_bid_window)
@@ -322,7 +322,9 @@ def place_bid(bid_sort_num, collection):
         driver_send_keys(
             (By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[2]/div[3]/div[2]/div/input'),
             bid_price)
-        bid_amount = float(bid_pool_balance) / float(bid_price)
+        bid_pool_balance = float(bid_pool_balance)
+        bid_pool_balance = math.floor(bid_pool_balance * 100) / 100.0
+        bid_amount = bid_pool_balance / float(bid_price)
         bid_amount = math.floor(bid_amount)
         driver_clear_input(
             (By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[2]/div[4]/div[2]/div/input'))
@@ -391,7 +393,7 @@ if __name__ == '__main__':
     while True:
         try:
             secure_bidding()
-        except Exception as error:
+        except (Exception, IndexError) as error:
             print('-----------------------------------------------------')
             print(error)
             print('-----------------------------------------------------')
