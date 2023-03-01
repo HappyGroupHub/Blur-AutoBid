@@ -162,40 +162,62 @@ def init_blur():
 
 
 def place_init_bids():
-    print('Start placing initial bids.')
-    print('-----------------------------------------------------\n')
-    collections = config.get('followed_collections')
-    for current_collection in range(len(collections)):
-        time.sleep(5)
-        current_collection = collections[current_collection]
-        driver.get(current_collection.get('bid_url'))
-        bid_amount_left_to_stop = current_collection.get('bid_amount_left_to_stop')
-        total_bid_left = driver_get_text((By.XPATH,
-                                          '/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[1]/div[3]/div[1]'))
-        total_bid_left = float(total_bid_left)
-        bid_sort_num = 1
-        while True:
-            if total_bid_left >= bid_amount_left_to_stop:
-                place_bid(str(bid_sort_num), current_collection.get('collection'))
-                break
-            else:
-                bid_sort_num += 1
+    while True:
+        try:
+            print('Start placing initial bids.')
+            print('-----------------------------------------------------\n')
+            collections = config.get('followed_collections')
+            for current_collection in range(len(collections)):
+                time.sleep(5)
+                current_collection = collections[current_collection]
+                driver.get(current_collection.get('bid_url'))
+                bid_amount_left_to_stop = current_collection.get('bid_amount_left_to_stop')
+                total_bid_left = driver_get_text((By.XPATH,
+                                                  '/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[1]/div[3]/div[1]'))
+                total_bid_left = float(total_bid_left)
+                bid_sort_num = 1
+                while True:
+                    if total_bid_left >= bid_amount_left_to_stop:
+                        place_bid(str(bid_sort_num), current_collection.get('collection'))
+                        break
+                    else:
+                        bid_sort_num += 1
 
-                # try to get next bid price, may encounter error if bid price is too far
-                try:
-                    next_total = driver_get_text((By.XPATH,
-                                                  f'//*[@id="collection-main"]/div[2]/div/div[2]/div/div/div[{bid_sort_num}]/div[3]/div[1]'))
-                    total_bid_left += float(next_total)
-                except TimeoutException:
-                    print(f'Bid price is too far to place [{current_collection.get("collection")}]')
-                    print('Please try lower bid_amount_left_to_stop')
-                    break
+                        # try to get next bid price, may encounter error if bid price is too far
+                        try:
+                            next_total = driver_get_text((By.XPATH,
+                                                          f'//*[@id="collection-main"]/div[2]/div/div[2]/div/div/div[{bid_sort_num}]/div[3]/div[1]'))
+                            total_bid_left += float(next_total)
+                        except TimeoutException:
+                            print(
+                                f'Bid price is too far to place [{current_collection.get("collection")}]')
+                            print('Please try lower bid_amount_left_to_stop')
+                            break
 
-                continue
+                        continue
 
-    print('Initial bids placed successfully. \n')
-    print('Start secure your bidding!')
-    print('-----------------------------------------------------')
+            print('Initial bids placed successfully. \n')
+            print('Start secure your bidding!')
+            print('-----------------------------------------------------')
+            break
+        except Exception as error_init_bid:
+            print('-----------------------------------------------------')
+            print(error_init_bid)
+            print('-----------------------------------------------------')
+            print('Error occurred. Restarting the whole process...')
+            print('Closing redundant windows now.')
+            for init_bid_window in driver.window_handles[1:]:
+                driver.switch_to.window(init_bid_window)
+                driver.close()
+            driver.switch_to.window(driver.window_handles[0])
+            print('All redundant windows closed.')
+            print('Canceling all bids now.')
+            cancel_all_bids()
+            bid_placed.clear()
+            is_bid_placed.clear()
+            print('All bids canceled.')
+            print('Now placing initial bids again.')
+            continue
 
 
 def secure_bidding():
