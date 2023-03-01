@@ -14,7 +14,10 @@ def config_file_generator():
 # | Made by LD                       |
 # ++--------------------------------++
 
+# Paste your security phrase here.
+# If you're not using the first account, please enter private key, else, leave it blank.
 security_phrase: ''
+private_key: ''
 
 # Check Interval(in seconds)
 # The lower the interval, the more frequently the program will check for new bids.
@@ -62,6 +65,7 @@ def read_config():
                 current_collection['bid_url'] = get_bid_url(current_collection['collection'])
             config = {
                 'security_phrases': security_phrases,
+                'private_key': data['private_key'],
                 'check_interval': data['check_interval'],
                 'followed_collections': followed_collections,
             }

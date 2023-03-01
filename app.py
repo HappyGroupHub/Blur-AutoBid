@@ -79,6 +79,17 @@ def setup_metamask():
     time.sleep(1)
     driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/div[2]/button'))
     driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/div[2]/button'))
+
+    # check if user has entered private key
+    if not config.get('private_key') == '':
+        time.sleep(3)
+        driver_click((By.XPATH, '//*[@id="app-content"]/div/div[1]/div/div[2]/button'))
+        driver_click((By.XPATH, '//*[@id="app-content"]/div/div[3]/button[2]'))
+        driver_send_keys((By.XPATH, '//*[@id="private-key-box"]'), config.get('private_key'))
+        driver_click(
+            (By.XPATH, '//*[@id="app-content"]/div/div[3]/div/div/div[2]/div[2]/div[2]/button[2]'))
+        time.sleep(3)
+
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
     print('Metamask setup successfully.')
