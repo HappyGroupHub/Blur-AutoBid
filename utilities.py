@@ -1,4 +1,5 @@
 """This python will handle some extra functions."""
+import random
 import sys
 from os.path import exists
 
@@ -93,3 +94,14 @@ def get_bid_url(collection):
     """
     bid_url = f'https://blur.io/collection/{collection}/bids'
     return bid_url
+
+
+def key_generator():
+    """Generate the template of key file"""
+    source = ('abcdefghijklmnopqrstuvwxyz'
+              'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+              '1234567890'
+              '-_!@#$%^&*()')
+    rng = random.SystemRandom()
+    length = random.randint(8, 16)
+    return ''.join(rng.choice(source) for _ in range(length))

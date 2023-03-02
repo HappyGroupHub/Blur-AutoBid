@@ -65,12 +65,13 @@ def setup_metamask():
                          config.get('security_phrases')[i])
     driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/div[4]/div/button'))
     time.sleep(2)
+    password = utils.key_generator()
     driver_send_keys(
         (By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/div[2]/form/div[1]/label/input'),
-        '12345678')
+        password)
     driver_send_keys(
         (By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/div[2]/form/div[2]/label/input'),
-        '12345678')
+        password)
     driver_click(
         (By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/div[2]/form/div[3]/label/input'))
     driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/div[2]/form/button'))
