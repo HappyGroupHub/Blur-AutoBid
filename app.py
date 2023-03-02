@@ -169,7 +169,7 @@ def place_init_bids():
             print('-----------------------------------------------------\n')
             collections = config.get('followed_collections')
             for current_collection in range(len(collections)):
-                time.sleep(5)
+                time.sleep(config.get('check_interval'))
                 current_collection = collections[current_collection]
                 driver.get(current_collection.get('bid_url'))
                 bid_amount_left_to_stop = current_collection.get('bid_amount_left_to_stop')
@@ -284,7 +284,7 @@ def secure_bidding():
                     break
 
                 continue
-    time.sleep(5)
+    time.sleep(1)
     secure_bidding()
 
 
@@ -319,7 +319,7 @@ def place_bid(bid_sort_num, collection):
         print('-----------------------------------------------------')
     else:
         driver_click((By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/button'))
-        time.sleep(1)
+        time.sleep(0.5)
         driver_send_keys(
             (By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[2]/div[3]/div[2]/div/input'),
             bid_price)
@@ -332,6 +332,7 @@ def place_bid(bid_sort_num, collection):
         driver_send_keys(
             (By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[2]/div[4]/div[2]/div/input'),
             bid_amount)
+        time.sleep(0.5)
         driver_click((By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[3]/div/button[2]'))
         sign_transaction()
         collection_name = driver_get_text((By.XPATH, '//*[@id="OVERLINE"]/div/div[1]/div[2]/div'))
