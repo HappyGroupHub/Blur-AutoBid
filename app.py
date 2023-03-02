@@ -240,7 +240,6 @@ def secure_bidding():
                 bid_price = float(bid_price)
                 previous_bid_price = bid_placed.get(
                     current_collection.get('collection'))
-                previous_bid_price = float(previous_bid_price)
                 current_time = datetime.now().strftime('[%m/%d %H:%M:%S]')
                 if not bid_price == previous_bid_price:
                     if not previous_bid_price == 0:
