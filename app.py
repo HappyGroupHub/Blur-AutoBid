@@ -60,11 +60,28 @@ def setup_metamask():
     driver.switch_to.window(driver.window_handles[0])
     driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/ul/li[2]/button'))
     driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/div/button[1]'))
-    for i in range(12):
+
+    # check security phrase length
+    if len(config.get('security_phrases')) == 15:
+        driver_click((By.XPATH,
+                      '//*[@id="app-content"]/div/div[2]/div/div/div/div[4]/div/div/div[2]/select/option[2]'))
+    if len(config.get('security_phrases')) == 18:
+        driver_click((By.XPATH,
+                      '//*[@id="app-content"]/div/div[2]/div/div/div/div[4]/div/div/div[2]/select/option[3]'))
+    if len(config.get('security_phrases')) == 21:
+        driver_click((By.XPATH,
+                      '//*[@id="app-content"]/div/div[2]/div/div/div/div[4]/div/div/div[2]/select/option[4]'))
+    if len(config.get('security_phrases')) == 24:
+        driver_click((By.XPATH,
+                      '//*[@id="app-content"]/div/div[2]/div/div/div/div[4]/div/div/div[2]/select/option[5]'))
+
+    # enter security phrases
+    for i in range(len(config.get('security_phrases'))):
         driver_send_keys((By.XPATH, f'//*[@id="import-srp__srp-word-{i}"]'),
                          config.get('security_phrases')[i])
     driver_click((By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/div[4]/div/button'))
     time.sleep(2)
+
     password = utils.key_generator()
     driver_send_keys(
         (By.XPATH, '//*[@id="app-content"]/div/div[2]/div/div/div/div[2]/form/div[1]/label/input'),
