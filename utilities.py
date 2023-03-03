@@ -64,6 +64,8 @@ def read_config():
             for i in range(len(followed_collections)):
                 current_collection = followed_collections[i]
                 current_collection['bid_url'] = get_bid_url(current_collection['collection'])
+                current_collection['contract_address'] = current_collection[
+                    'contract_address'].lower()
             config = {
                 'security_phrases': security_phrases,
                 'private_key': data['private_key'],
