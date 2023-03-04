@@ -359,6 +359,7 @@ def place_bid(bid_sort_num, collection):
         bid_amount = math.floor(bid_amount)
         driver_clear_input(
             (By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[2]/div[4]/div[2]/div/input'))
+        time.sleep(0.1)
         driver_send_keys(
             (By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[2]/div[4]/div[2]/div/input'),
             bid_amount)
