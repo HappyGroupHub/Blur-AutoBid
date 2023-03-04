@@ -210,6 +210,8 @@ def place_init_bids():
                             print(
                                 f'Bid price is too far to place [{current_collection.get("collection")}]')
                             print('Please try lower bid_amount_left_to_stop')
+                            bid_placed[current_collection.get('collection')] = 0
+                            is_bid_placed[current_collection.get('collection')] = False
                             break
 
                         continue
@@ -296,7 +298,19 @@ def secure_bidding():
                     total_bid_left += float(next_total)
                 except TimeoutException:
                     print(f'Bid price is too far to place [{current_collection.get("collection")}]')
-                    print('Please try lower bid_amount_left_to_stop')
+                    print('Please try lower bid_amount_left_to_stop, canceling its bid now.')
+
+                    # try to cancel bid, may encounter error if you bid that NFT successfully
+                    try:
+                        cancel_bid(current_collection.get('contract_address'))
+                    except TimeoutException:
+                        print('Cancel bid failed!')
+                        print(f'Your bid on {collection_name} might get accepted')
+                        print(f'Please check your wallet activity to confirm')
+                        print('Now continue to secure your bidding...\n')
+
+                    bid_placed[current_collection.get('collection')] = 0
+                    is_bid_placed[current_collection.get('collection')] = False
                     break
 
                 continue
