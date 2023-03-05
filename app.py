@@ -399,7 +399,7 @@ def cancel_bid(contract_address):
     time.sleep(1)
     driver_click((By.XPATH,
                   '/html/body/div/div/main/div/div[4]/div/div[2]/div/div[2]/div/div/a/div[7]/div/button'))
-    time.sleep(3)
+    time.sleep(1)
 
 
 def cancel_all_bids():
