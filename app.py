@@ -196,7 +196,18 @@ def place_init_bids():
                 bid_sort_num = 1
                 while True:
                     if total_bid_left >= bid_amount_left_to_stop:
-                        place_bid(str(bid_sort_num), current_collection.get('collection'))
+
+                        # try to place bid, may encounter error if lagged
+                        while True:
+                            try:
+                                place_bid(str(bid_sort_num),
+                                          current_collection.get('collection'))
+                                break
+                            except (Exception, IndexError):
+                                driver.refresh()
+                                time.sleep(config.get('check_interval'))
+                                continue
+
                         break
                     else:
                         bid_sort_num += 1
