@@ -55,6 +55,17 @@ def driver_clear_input(locator):
     WebDriverWait(driver, 5).until(ec.presence_of_element_located(locator)).clear()
 
 
+def driver_get_attribute(locator, attribute):
+    """Get attribute of element.
+
+    :param locator: Locator of element.
+    :param attribute: Attribute to get.
+    :return: Attribute of element.
+    """
+    return WebDriverWait(driver, 5).until(ec.presence_of_element_located(locator)).get_attribute(
+        attribute)
+
+
 def setup_metamask():
     driver.get('chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn/home.html')
     driver.switch_to.window(driver.window_handles[0])
@@ -376,13 +387,22 @@ def place_bid(bid_sort_num, collection):
         bid_pool_balance = math.floor(bid_pool_balance * 100) / 100.0
         bid_amount = bid_pool_balance / float(bid_price)
         bid_amount = math.floor(bid_amount)
-        driver_clear_input(
-            (By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[2]/div[4]/div[2]/div/input'))
-        time.sleep(0.1)
+
+        # Clear input field
+        while True:
+            driver_clear_input((By.XPATH,
+                                '//*[@id="__next"]/div/main/div/div[4]/div/div[2]/div[4]/div[2]/div/input'))
+            bid_amount_input = driver_get_attribute((By.XPATH,
+                                                     '//*[@id="__next"]/div/main/div/div[4]/div/div[2]/div[4]/div[2]/div/input'),
+                                                    'value')
+            if bid_amount_input == '':
+                break
+            else:
+                continue
+
         driver_send_keys(
             (By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[2]/div[4]/div[2]/div/input'),
             bid_amount)
-        time.sleep(0.5)
         driver_click((By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[3]/div/button[2]'))
         sign_transaction()
         collection_name = driver_get_text((By.XPATH, '//*[@id="OVERLINE"]/div/div[1]/div[2]/div'))
