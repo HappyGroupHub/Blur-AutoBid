@@ -289,7 +289,9 @@ def secure_bidding():
                             place_bid(str(bid_sort_num),
                                       current_collection.get('collection'))
                             break
-                        except (TimeoutException, IndexError):
+                        except (Exception, IndexError):
+                            driver.refresh()
+                            time.sleep(config.get('check_interval'))
                             continue
 
                     break
