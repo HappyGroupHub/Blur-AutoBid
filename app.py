@@ -303,11 +303,9 @@ def secure_bidding():
                     # try to cancel bid, may encounter error if you bid that NFT successfully
                     try:
                         cancel_bid(current_collection.get('contract_address'))
+                        print('Bid canceled successfully.')
                     except TimeoutException:
-                        print('Cancel bid failed!')
-                        print(f'Your bid on {collection_name} might get accepted')
-                        print(f'Please check your wallet activity to confirm')
-                        print('Now continue to secure your bidding...\n')
+                        pass
 
                     bid_placed[current_collection.get('collection')] = 0
                     is_bid_placed[current_collection.get('collection')] = False
