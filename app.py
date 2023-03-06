@@ -1,4 +1,5 @@
 """This is the main python file of the project."""
+import logging
 import math
 import time
 from datetime import datetime
@@ -14,6 +15,11 @@ import utilities as utils
 config = utils.read_config()
 bid_placed = dict()
 is_bid_placed = dict()
+
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(message)s',
+                    datefmt='%m/%d %H:%M:%S',
+                    handlers=[logging.FileHandler('logs.txt', 'w', 'utf-8'),
+                              logging.StreamHandler()])
 
 options = webdriver.ChromeOptions()
 options.add_extension('metamask.crx')
@@ -121,7 +127,7 @@ def setup_metamask():
 
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
-    print('Metamask setup successfully.')
+    logging.info('Metamask setup successfully.')
 
 
 def login_blur():
@@ -144,7 +150,7 @@ def login_blur():
 
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
-    print('Blur login successfully.')
+    logging.info('Blur login successfully.')
 
 
 def init_blur():
@@ -187,14 +193,14 @@ def init_blur():
     except (TimeoutException, ElementClickInterceptedException):
         pass
 
-    print('Blur initialize successfully.')
+    logging.info('Blur initialize successfully.')
 
 
 def place_init_bids():
     while True:
         try:
-            print('Start placing initial bids.')
-            print('-----------------------------------------------------\n')
+            logging.info('Start placing initial bids.\n'
+                         '-----------------------------------------------------')
             collections = config.get('followed_collections')
             for current_collection in range(len(collections)):
                 time.sleep(config.get('check_interval'))
@@ -229,36 +235,36 @@ def place_init_bids():
                                                           f'//*[@id="collection-main"]/div[2]/div/div[2]/div/div/div[{bid_sort_num}]/div[3]/div[1]'))
                             total_bid_left += float(next_total)
                         except TimeoutException:
-                            print(
-                                f'Bid price is too far to place [{current_collection.get("collection")}]')
-                            print('Please try lower bid_amount_left_to_stop')
+                            logging.warning(
+                                f'Bid price is too far to place [{current_collection.get("collection")}]\n'
+                                f'Please try lower bid_amount_left_to_stop')
                             bid_placed[current_collection.get('collection')] = 0
                             is_bid_placed[current_collection.get('collection')] = False
                             break
 
                         continue
 
-            print('Initial bids placed successfully. \n')
-            print('Start secure your bidding!')
-            print('-----------------------------------------------------')
+            logging.info('Initial bids placed successfully.\n'
+                         'Start secure your bidding!\n'
+                         '-----------------------------------------------------')
             break
         except (Exception, IndexError) as error_init_bid:
-            print('-----------------------------------------------------')
-            print(error_init_bid)
-            print('-----------------------------------------------------')
-            print('Error occurred while placing initial bids.')
-            print('Closing redundant windows now.')
+            logging.error('-----------------------------------------------------\n'
+                          f'{error_init_bid}\n'
+                          '-----------------------------------------------------'
+                          'Error occurred while placing initial bids.')
+            logging.info('Closing redundant windows now.')
             for init_bid_window in driver.window_handles[1:]:
                 driver.switch_to.window(init_bid_window)
                 driver.close()
             driver.switch_to.window(driver.window_handles[0])
-            print('All redundant windows closed.')
-            print('Canceling all bids now.')
+            logging.info('All redundant windows closed.\n'
+                         'Canceling all bids now.')
             cancel_all_bids()
             bid_placed.clear()
             is_bid_placed.clear()
-            print('All bids canceled.')
-            print('Now placing initial bids again.')
+            logging.info('All bids canceled.\n'
+                         'Now placing initial bids again.')
             continue
 
 
@@ -284,21 +290,21 @@ def secure_bidding():
                 current_time = datetime.now().strftime('[%m/%d %H:%M:%S]')
                 if not bid_price == previous_bid_price:
                     if not previous_bid_price == 0:
-                        print('-----------------------------------------------------')
-                        print(f'{current_time} Bid price changed!')
-                        print(f'Previous bid price on {collection_name} is {previous_bid_price}')
-                        print(f'New bid price on {collection_name} is {bid_price}')
-                        print('-----------------------------------------------------')
+                        logging.warning('-----------------------------------------------------\n'
+                                        f'Bid price changed on {collection_name}!\n'
+                                        f'Previous price: {previous_bid_price}ETH\n'
+                                        f'New price: {bid_price}ETH\n'
+                                        '-----------------------------------------------------')
                         if is_bid_placed.get(current_collection.get('collection')):
 
                             # try to cancel bid, may encounter error if you bid that NFT successfully
                             try:
                                 cancel_bid(current_collection.get('contract_address'))
                             except TimeoutException:
-                                print('Cancel bid failed!')
-                                print(f'Your bid on {collection_name} might get accepted')
-                                print(f'Please check your wallet activity to confirm')
-                                print('Now continue to secure your bidding...\n')
+                                logging.warning('Cancel bid failed!\n'
+                                                f'Your bid on {collection_name} might get accepted\n'
+                                                'Please check your wallet activity to confirm'
+                                                'Now continue to secure your bidding...\n')
                                 bid_placed[current_collection.get('collection')] = 0
 
                             is_bid_placed[current_collection.get('collection')] = False
@@ -318,7 +324,7 @@ def secure_bidding():
 
                     break
                 else:
-                    print(f'{current_time} Your bid on {collection_name} is secured!')
+                    logging.info(f'Your bid on {collection_name} is secured!')
                     break
             else:
                 bid_sort_num += 1
@@ -329,13 +335,14 @@ def secure_bidding():
                                                   f'//*[@id="collection-main"]/div[2]/div/div[2]/div/div/div[{bid_sort_num}]/div[3]/div[1]'))
                     total_bid_left += float(next_total)
                 except TimeoutException:
-                    print(f'Bid price is too far to place [{current_collection.get("collection")}]')
-                    print('Please try lower bid_amount_left_to_stop, canceling its bid now.')
+                    logging.warning(
+                        f'Bid price is too far to place [{current_collection.get("collection")}]\n'
+                        f'Please try lower bid_amount_left_to_stop, canceling its bid now.')
 
                     # try to cancel bid, may encounter error if you bid that NFT successfully
                     try:
                         cancel_bid(current_collection.get('contract_address'))
-                        print('Bid canceled successfully.')
+                        logging.info('Bid canceled successfully.')
                     except TimeoutException:
                         pass
 
@@ -371,12 +378,11 @@ def place_bid(bid_sort_num, collection):
     if float(bid_pool_balance) < float(bid_price):
         if collection not in bid_placed:
             bid_placed[collection] = 0
-        print('-----------------------------------------------------')
-        print(current_time)
-        print(f'Not enough balance to place bid! [{collection_name}]')
-        print(f'Current balance: {bid_pool_balance}')
-        print(f'Bid price needed: {bid_price}')
-        print('-----------------------------------------------------')
+        logging.warning('-----------------------------------------------------\n'
+                        f'Not enough balance to place bid! [{collection_name}]\n'
+                        f'Current balance: {bid_pool_balance}\n'
+                        f'Bid price needed: {bid_price}\n'
+                        '-----------------------------------------------------')
     else:
         driver_click((By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/button'))
         time.sleep(0.5)
@@ -408,10 +414,9 @@ def place_bid(bid_sort_num, collection):
         collection_name = driver_get_text((By.XPATH, '//*[@id="OVERLINE"]/div/div[1]/div[2]/div'))
         bid_placed[collection] = float(bid_price)
         is_bid_placed[collection] = True
-        print(f'Bid placed success! [{collection_name}]')
-        print(
-            f'Placed with: {bid_price} x {bid_amount} = {float(bid_price) * bid_amount}ETH')
-        print('-----------------------------------------------------')
+        logging.warning(f'Bid placed success! [{collection_name}]'
+                        f'Placed with: {bid_price} x {bid_amount} = {float(bid_price) * bid_amount}ETH\n'
+                        '-----------------------------------------------------')
 
 
 def cancel_bid(contract_address):

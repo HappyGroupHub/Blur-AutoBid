@@ -1,6 +1,10 @@
 # Config File
 config.yml
 
+# Logs
+*.log
+logs.txt
+
 # IDE Files and Environment
 .idea
 __pycache__
