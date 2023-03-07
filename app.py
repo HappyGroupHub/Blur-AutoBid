@@ -2,7 +2,6 @@
 import logging
 import math
 import time
-from datetime import datetime
 
 from selenium import webdriver
 from selenium.common import TimeoutException, ElementClickInterceptedException
@@ -336,8 +335,9 @@ def secure_bidding():
                     total_bid_left += float(next_total)
                 except TimeoutException:
                     logging.warning(
-                        f'Bid price is too far to place [{current_collection.get("collection")}]\n'
-                        f'Please try lower bid_amount_left_to_stop, canceling its bid now.')
+                        f'Bid price is too far to place [{current_collection.get("collection")}]')
+                    logging.warning(
+                        'Please try lower bid_amount_left_to_stop, canceling its bid now.')
 
                     # try to cancel bid, may encounter error if you bid that NFT successfully
                     try:
@@ -414,7 +414,8 @@ def place_bid(bid_sort_num, collection):
         try:
             WebDriverWait(driver, 1).until(ec.presence_of_element_located(
                 (By.XPATH, '/html/body/div/div/main/div/div[4]/div/div[2]/div[3]/button[2]')))
-            driver_click((By.XPATH, '/html/body/div/div/main/div/div[4]/div/div[2]/div[3]/button[2]'))
+            driver_click(
+                (By.XPATH, '/html/body/div/div/main/div/div[4]/div/div[2]/div[3]/button[2]'))
         except TimeoutException:
             pass
 
