@@ -238,7 +238,7 @@ def place_init_bids():
                             logging.warning(
                                 f'Bid price is too far to place [{current_collection.get("collection")}]')
                             logging.warning(
-                                f'Please try lower bid_amount_left_to_stop')
+                                'Please try lower bid_amount_left_to_stop')
                             bid_placed[current_collection.get('collection')] = 0
                             is_bid_placed[current_collection.get('collection')] = False
                             break
@@ -291,21 +291,21 @@ def secure_bidding():
                 current_time = datetime.now().strftime('[%m/%d %H:%M:%S]')
                 if not bid_price == previous_bid_price:
                     if not previous_bid_price == 0:
-                        logging.warning('-----------------------------------------------------\n'
-                                        f'Bid price changed on {collection_name}!\n'
-                                        f'Previous price: {previous_bid_price}ETH\n'
-                                        f'New price: {bid_price}ETH\n'
-                                        '-----------------------------------------------------')
+                        logging.warning('-----------------------------------------------------')
+                        logging.warning(f'Bid price changed on {collection_name}!')
+                        logging.warning(f'Previous price: {previous_bid_price}ETH')
+                        logging.warning(f'New price: {bid_price}ETH')
+                        logging.warning('-----------------------------------------------------')
                         if is_bid_placed.get(current_collection.get('collection')):
 
                             # try to cancel bid, may encounter error if you bid that NFT successfully
                             try:
                                 cancel_bid(current_collection.get('contract_address'))
                             except TimeoutException:
-                                logging.warning('Cancel bid failed!\n'
-                                                f'Your bid on {collection_name} might get accepted\n'
-                                                'Please check your wallet activity to confirm'
-                                                'Now continue to secure your bidding...\n')
+                                logging.warning('Cancel bid failed!')
+                                logging.warning(f'Your bid on {collection_name} might get accepted')
+                                logging.warning('Please check your wallet activity to confirm')
+                                logging.warning('Now continue to secure your bidding...')
                                 bid_placed[current_collection.get('collection')] = 0
 
                             is_bid_placed[current_collection.get('collection')] = False
@@ -380,9 +380,9 @@ def place_bid(bid_sort_num, collection):
         if collection not in bid_placed:
             bid_placed[collection] = 0
         logging.warning('-----------------------------------------------------')
-        logging.warning('Not enough balance to place bid! [{collection_name}]')
-        logging.warning('Current balance: {bid_pool_balance}')
-        logging.warning('Bid price needed: {bid_price}')
+        logging.warning(f'Not enough balance to place bid! [{collection_name}]')
+        logging.warning(f'Current balance: {bid_pool_balance}')
+        logging.warning(f'Bid price needed: {bid_price}')
         logging.warning('-----------------------------------------------------')
     else:
         driver_click((By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/button'))
@@ -416,7 +416,8 @@ def place_bid(bid_sort_num, collection):
         bid_placed[collection] = float(bid_price)
         is_bid_placed[collection] = True
         logging.warning(f'Bid placed success! [{collection_name}]')
-        logging.warning('Placed with: {bid_price} x {bid_amount} = {float(bid_price) * bid_amount}ETH')
+        logging.warning(
+            f'Placed with: {bid_price} x {bid_amount} = {float(bid_price) * bid_amount}ETH')
         logging.warning('-----------------------------------------------------')
 
 
