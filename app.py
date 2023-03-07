@@ -288,7 +288,6 @@ def secure_bidding():
                 bid_price = float(bid_price)
                 previous_bid_price = bid_placed.get(
                     current_collection.get('collection'))
-                current_time = datetime.now().strftime('[%m/%d %H:%M:%S]')
                 if not bid_price == previous_bid_price:
                     if not previous_bid_price == 0:
                         logging.warning('-----------------------------------------------------')
@@ -375,7 +374,6 @@ def place_bid(bid_sort_num, collection):
             continue
 
     collection_name = driver_get_text((By.XPATH, '//*[@id="OVERLINE"]/div/div[1]/div[2]/div'))
-    current_time = datetime.now().strftime('[%m/%d %H:%M:%S]')
     if float(bid_pool_balance) < float(bid_price):
         if collection not in bid_placed:
             bid_placed[collection] = 0
@@ -411,6 +409,15 @@ def place_bid(bid_sort_num, collection):
             (By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[2]/div[4]/div[2]/div/input'),
             bid_amount)
         driver_click((By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/div/div[3]/div/button[2]'))
+
+        # try to click confirm button
+        try:
+            WebDriverWait(driver, 1).until(ec.presence_of_element_located(
+                (By.XPATH, '/html/body/div/div/main/div/div[4]/div/div[2]/div[3]/button[2]')))
+            driver_click((By.XPATH, '/html/body/div/div/main/div/div[4]/div/div[2]/div[3]/button[2]'))
+        except TimeoutException:
+            pass
+
         sign_transaction()
         collection_name = driver_get_text((By.XPATH, '//*[@id="OVERLINE"]/div/div[1]/div[2]/div'))
         bid_placed[collection] = float(bid_price)
