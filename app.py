@@ -199,8 +199,8 @@ def init_blur():
 def place_init_bids():
     while True:
         try:
-            logging.info('Start placing initial bids.\n'
-                         '-----------------------------------------------------')
+            logging.info('Start placing initial bids.')
+            logging.info('-----------------------------------------------------')
             collections = config.get('followed_collections')
             for current_collection in range(len(collections)):
                 time.sleep(config.get('check_interval'))
@@ -236,7 +236,8 @@ def place_init_bids():
                             total_bid_left += float(next_total)
                         except TimeoutException:
                             logging.warning(
-                                f'Bid price is too far to place [{current_collection.get("collection")}]\n'
+                                f'Bid price is too far to place [{current_collection.get("collection")}]')
+                            logging.warning(
                                 f'Please try lower bid_amount_left_to_stop')
                             bid_placed[current_collection.get('collection')] = 0
                             is_bid_placed[current_collection.get('collection')] = False
@@ -244,27 +245,27 @@ def place_init_bids():
 
                         continue
 
-            logging.info('Initial bids placed successfully.\n'
-                         'Start secure your bidding!\n'
-                         '-----------------------------------------------------')
+            logging.info('Initial bids placed successfully.')
+            logging.info('Start secure your bidding!')
+            logging.info('-----------------------------------------------------')
             break
         except (Exception, IndexError) as error_init_bid:
-            logging.error('-----------------------------------------------------\n'
-                          f'{error_init_bid}\n'
-                          '-----------------------------------------------------'
-                          'Error occurred while placing initial bids.')
+            logging.error('-----------------------------------------------------')
+            logging.error(f'{error_init_bid}')
+            logging.error('-----------------------------------------------------')
+            logging.error('Error occurred while placing initial bids.')
             logging.info('Closing redundant windows now.')
             for init_bid_window in driver.window_handles[1:]:
                 driver.switch_to.window(init_bid_window)
                 driver.close()
             driver.switch_to.window(driver.window_handles[0])
-            logging.info('All redundant windows closed.\n'
-                         'Canceling all bids now.')
+            logging.info('All redundant windows closed.')
+            logging.info('Canceling all bids now.')
             cancel_all_bids()
             bid_placed.clear()
             is_bid_placed.clear()
-            logging.info('All bids canceled.\n'
-                         'Now placing initial bids again.')
+            logging.info('All bids canceled.')
+            logging.info('Now placing initial bids again.')
             continue
 
 
@@ -378,11 +379,11 @@ def place_bid(bid_sort_num, collection):
     if float(bid_pool_balance) < float(bid_price):
         if collection not in bid_placed:
             bid_placed[collection] = 0
-        logging.warning('-----------------------------------------------------\n'
-                        f'Not enough balance to place bid! [{collection_name}]\n'
-                        f'Current balance: {bid_pool_balance}\n'
-                        f'Bid price needed: {bid_price}\n'
-                        '-----------------------------------------------------')
+        logging.warning('-----------------------------------------------------')
+        logging.warning('Not enough balance to place bid! [{collection_name}]')
+        logging.warning('Current balance: {bid_pool_balance}')
+        logging.warning('Bid price needed: {bid_price}')
+        logging.warning('-----------------------------------------------------')
     else:
         driver_click((By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/button'))
         time.sleep(0.5)
@@ -414,9 +415,9 @@ def place_bid(bid_sort_num, collection):
         collection_name = driver_get_text((By.XPATH, '//*[@id="OVERLINE"]/div/div[1]/div[2]/div'))
         bid_placed[collection] = float(bid_price)
         is_bid_placed[collection] = True
-        logging.warning(f'Bid placed success! [{collection_name}]'
-                        f'Placed with: {bid_price} x {bid_amount} = {float(bid_price) * bid_amount}ETH\n'
-                        '-----------------------------------------------------')
+        logging.warning(f'Bid placed success! [{collection_name}]')
+        logging.warning('Placed with: {bid_price} x {bid_amount} = {float(bid_price) * bid_amount}ETH')
+        logging.warning('-----------------------------------------------------')
 
 
 def cancel_bid(contract_address):
