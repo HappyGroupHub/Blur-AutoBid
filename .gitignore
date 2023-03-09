@@ -3,6 +3,7 @@ config.yml
 
 # Logs
 *.log
+logs
 logs.txt
 
 # IDE Files and Environment

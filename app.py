@@ -1,6 +1,7 @@
 """This is the main python file of the project."""
 import logging
 import math
+import os.path
 import time
 
 from selenium import webdriver
@@ -15,9 +16,12 @@ config = utils.read_config()
 bid_placed = dict()
 is_bid_placed = dict()
 
+if not os.path.exists('./logs'):
+    os.makedirs('./logs')
+log_filename = f"./logs/log_{time.strftime('%Y-%m-%d_%H-%M')}.txt"
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(message)s',
                     datefmt='%m/%d %H:%M:%S',
-                    handlers=[logging.FileHandler('logs.txt', 'w', 'utf-8'),
+                    handlers=[logging.FileHandler(log_filename, 'w', 'utf-8'),
                               logging.StreamHandler()])
 
 options = webdriver.ChromeOptions()
