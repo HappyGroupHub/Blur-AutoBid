@@ -26,6 +26,9 @@ private_key: ''
 # It is recommended to set the interval to 5 seconds.
 check_interval: 5
 
+# Line Notify Token
+line_notify_token: ''
+
 # Bid Collection
 # Copy collection name from url, e.g. https://blur.io/collection/>> beanzofficial <<
 # Follow as many collections as you want, below are examples.
@@ -71,6 +74,7 @@ def read_config():
                 'private_key': data['private_key'],
                 'check_interval': data['check_interval'],
                 'followed_collections': followed_collections,
+                'line_notify_token' : data['line_notify_token']
             }
             return config
     except (KeyError, TypeError):

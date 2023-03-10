@@ -3,13 +3,12 @@ import logging
 import math
 import os.path
 import time
-
 from selenium import webdriver
 from selenium.common import TimeoutException, ElementClickInterceptedException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
-
+import line_notify
 import utilities as utils
 
 config = utils.read_config()
@@ -131,6 +130,8 @@ def setup_metamask():
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
     logging.info('Metamask setup successfully.')
+    message = '\nMetamask setup successfully.'
+    line_notify.send_message(message)
 
 
 def login_blur():
@@ -154,6 +155,8 @@ def login_blur():
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
     logging.info('Blur login successfully.')
+    message = '\nBlur login successfully.'
+    line_notify.send_message(message)
 
 
 def init_blur():
@@ -197,6 +200,8 @@ def init_blur():
         pass
 
     logging.info('Blur initialize successfully.')
+    message = '\nBlur initialize successfully.'
+    line_notify.send_message(message)
 
 
 def place_init_bids():
@@ -249,7 +254,11 @@ def place_init_bids():
                         continue
 
             logging.info('Initial bids placed successfully.')
+            message = '\nInitial bids placed successfully.'
+            line_notify.send_message(message)
             logging.info('Start secure your bidding!')
+            message = '\nStart secure your bidding!'
+            line_notify.send_message(message)
             logging.info('-----------------------------------------------------')
             break
         except (Exception, IndexError) as error_init_bid:
@@ -258,17 +267,26 @@ def place_init_bids():
             logging.error('-----------------------------------------------------')
             logging.error('Error occurred while placing initial bids.')
             logging.info('Closing redundant windows now.')
+            message = '\nError occurred while placing initial bids.' \
+                      '\nClosing redundant windows now.'
+            line_notify.send_message(message)
             for init_bid_window in driver.window_handles[1:]:
                 driver.switch_to.window(init_bid_window)
                 driver.close()
             driver.switch_to.window(driver.window_handles[0])
             logging.info('All redundant windows closed.')
             logging.info('Canceling all bids now.')
+            message = '\nAll redundant windows closed.' \
+                      '\nCanceling all bids now.'
+            line_notify.send_message(message)
             cancel_all_bids()
             bid_placed.clear()
             is_bid_placed.clear()
             logging.info('All bids canceled.')
             logging.info('Now placing initial bids again.')
+            message = '\nAll bids canceled.' \
+                      '\nNow placing initial bids again.'
+            line_notify.send_message(message)
             continue
 
 
@@ -298,6 +316,10 @@ def secure_bidding():
                         logging.warning(f'Previous price: {previous_bid_price}ETH')
                         logging.warning(f'New price: {bid_price}ETH')
                         logging.warning('-----------------------------------------------------')
+                        message = f'\nBid price changed on {collection_name}!\n' \
+                                  f'Previous price: {previous_bid_price}ETH\n' \
+                                  f'New price: {bid_price}ETH'
+                        line_notify.send_message(message)
                         if is_bid_placed.get(current_collection.get('collection')):
 
                             # try to cancel bid, may encounter error if you bid that NFT successfully
@@ -308,6 +330,11 @@ def secure_bidding():
                                 logging.warning(f'Your bid on {collection_name} might get accepted')
                                 logging.warning('Please check your wallet activity to confirm')
                                 logging.warning('Now continue to secure your bidding...')
+                                message = '\nCancel bid failed!\n' \
+                                          f'Your bid on {collection_name} might get accepted\n' \
+                                          'Please check your wallet activity to confirm\n' \
+                                          'Now continue to secure your bidding...\n'
+                                line_notify.send_message(message)
                                 bid_placed[current_collection.get('collection')] = 0
 
                             is_bid_placed[current_collection.get('collection')] = False
@@ -342,11 +369,11 @@ def secure_bidding():
                         f'Bid price is too far to place [{current_collection.get("collection")}]')
                     logging.warning(
                         'Please try lower bid_amount_left_to_stop, canceling its bid now.')
-
                     # try to cancel bid, may encounter error if you bid that NFT successfully
                     try:
                         cancel_bid(current_collection.get('contract_address'))
                         logging.info('Bid canceled successfully.')
+                        message = '\nBid canceled successfully.'
                     except TimeoutException:
                         pass
 
