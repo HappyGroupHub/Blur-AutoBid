@@ -517,16 +517,25 @@ if __name__ == '__main__':
             print('-----------------------------------------------------')
             print('Error occurred. Restarting the whole process...')
             print('Closing redundant windows now.')
+            message = '\nError occurred. Restarting the whole process...' \
+                      '\nClosing redundant windows now.'
+            line_notify.send_message(message)
             for window in driver.window_handles[1:]:
                 driver.switch_to.window(window)
                 driver.close()
             driver.switch_to.window(driver.window_handles[0])
             print('All redundant windows closed.')
             print('Canceling all bids now.')
+            message = '\nAll redundant windows closed.' \
+                      '\nCanceling all bids now.'
+            line_notify.send_message(message)
             cancel_all_bids()
             bid_placed.clear()
             is_bid_placed.clear()
             print('All bids canceled.')
             print('Now placing initial bids again.')
+            message = '\nAll bids canceled.' \
+                      '\nNow placing initial bids again.'
+            line_notify.send_message(message)
             place_init_bids()
             continue
