@@ -26,7 +26,10 @@ private_key: ''
 # It is recommended to set the interval to 5 seconds.
 check_interval: 5
 
-# Line Notify Token
+# Line Notify(optional)
+# If you want to receive notifications, please fill in the token.
+# You can get the token from here: https://notify-bot.line.me/my/
+# If you don't want to receive notifications, please leave it blank.
 line_notify_token: ''
 
 # Bid Collection
@@ -74,7 +77,7 @@ def read_config():
                 'private_key': data['private_key'],
                 'check_interval': data['check_interval'],
                 'followed_collections': followed_collections,
-                'line_notify_token' : data['line_notify_token']
+                'line_notify_token': data['line_notify_token']
             }
             return config
     except (KeyError, TypeError):
@@ -103,7 +106,10 @@ def get_bid_url(collection):
 
 
 def key_generator():
-    """Generate the template of key file"""
+    """Generate a random key.
+
+    :rtype: str
+    """
     source = ('abcdefghijklmnopqrstuvwxyz'
               'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
               '1234567890'

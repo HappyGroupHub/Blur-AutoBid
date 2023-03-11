@@ -3,11 +3,13 @@ import logging
 import math
 import os.path
 import time
+
 from selenium import webdriver
 from selenium.common import TimeoutException, ElementClickInterceptedException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
+
 import line_notify
 import utilities as utils
 
@@ -129,9 +131,9 @@ def setup_metamask():
 
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
-    logging.info('Metamask setup successfully.')
-    message = '\nMetamask setup successfully.'
-    line_notify.send_message(message)
+    log_message = 'Metamask setup successfully.'
+    logging.info(log_message)
+    send_line_notify(log_message)
 
 
 def login_blur():
@@ -154,9 +156,9 @@ def login_blur():
 
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
+    log_message = 'Blur login successfully.'
     logging.info('Blur login successfully.')
-    message = '\nBlur login successfully.'
-    line_notify.send_message(message)
+    send_line_notify(log_message)
 
 
 def init_blur():
@@ -199,9 +201,9 @@ def init_blur():
     except (TimeoutException, ElementClickInterceptedException):
         pass
 
-    logging.info('Blur initialize successfully.')
-    message = '\nBlur initialize successfully.'
-    line_notify.send_message(message)
+    log_message = 'Blur initialize successfully.'
+    logging.info(log_message)
+    send_line_notify(log_message)
 
 
 def place_init_bids():
@@ -253,12 +255,12 @@ def place_init_bids():
 
                         continue
 
-            logging.info('Initial bids placed successfully.')
-            message = '\nInitial bids placed successfully.'
-            line_notify.send_message(message)
-            logging.info('Start secure your bidding!')
-            message = '\nStart secure your bidding!'
-            line_notify.send_message(message)
+            log_message = 'Initial bids placed successfully.'
+            logging.info(log_message)
+            line_notify.send_message(log_message)
+            log_message = 'Start secure your bidding!'
+            logging.info(log_message)
+            line_notify.send_message(log_message)
             logging.info('-----------------------------------------------------')
             break
         except (Exception, IndexError) as error_init_bid:
@@ -267,26 +269,26 @@ def place_init_bids():
             logging.error('-----------------------------------------------------')
             logging.error('Error occurred while placing initial bids.')
             logging.info('Closing redundant windows now.')
-            message = '\nError occurred while placing initial bids.' \
-                      '\nClosing redundant windows now.'
-            line_notify.send_message(message)
+            log_message = 'Error occurred while placing initial bids.\n' \
+                          'Closing redundant windows now.'
+            line_notify.send_message(log_message)
             for init_bid_window in driver.window_handles[1:]:
                 driver.switch_to.window(init_bid_window)
                 driver.close()
             driver.switch_to.window(driver.window_handles[0])
             logging.info('All redundant windows closed.')
             logging.info('Canceling all bids now.')
-            message = '\nAll redundant windows closed.' \
-                      '\nCanceling all bids now.'
-            line_notify.send_message(message)
+            log_message = 'All redundant windows closed.\n' \
+                          'Canceling all bids now.'
+            line_notify.send_message(log_message)
             cancel_all_bids()
             bid_placed.clear()
             is_bid_placed.clear()
             logging.info('All bids canceled.')
             logging.info('Now placing initial bids again.')
-            message = '\nAll bids canceled.' \
-                      '\nNow placing initial bids again.'
-            line_notify.send_message(message)
+            log_message = 'All bids canceled.\n' \
+                          'Now placing initial bids again.'
+            line_notify.send_message(log_message)
             continue
 
 
@@ -316,10 +318,10 @@ def secure_bidding():
                         logging.warning(f'Previous price: {previous_bid_price}ETH')
                         logging.warning(f'New price: {bid_price}ETH')
                         logging.warning('-----------------------------------------------------')
-                        message = f'\nBid price changed on {collection_name}!\n' \
-                                  f'Previous price: {previous_bid_price}ETH\n' \
-                                  f'New price: {bid_price}ETH'
-                        line_notify.send_message(message)
+                        log_message = f'Bid price changed on {collection_name}!\n' \
+                                      f'Previous price: {previous_bid_price}ETH\n' \
+                                      f'New price: {bid_price}ETH'
+                        line_notify.send_message(log_message)
                         if is_bid_placed.get(current_collection.get('collection')):
 
                             # try to cancel bid, may encounter error if you bid that NFT successfully
@@ -330,11 +332,11 @@ def secure_bidding():
                                 logging.warning(f'Your bid on {collection_name} might get accepted')
                                 logging.warning('Please check your wallet activity to confirm')
                                 logging.warning('Now continue to secure your bidding...')
-                                message = '\nCancel bid failed!\n' \
-                                          f'Your bid on {collection_name} might get accepted\n' \
-                                          'Please check your wallet activity to confirm\n' \
-                                          'Now continue to secure your bidding...\n'
-                                line_notify.send_message(message)
+                                log_message = 'Cancel bid failed!\n' \
+                                              f'Your bid on {collection_name} might get accepted\n' \
+                                              'Please check your wallet activity to confirm\n' \
+                                              'Now continue to secure your bidding...\n'
+                                line_notify.send_message(log_message)
                                 bid_placed[current_collection.get('collection')] = 0
 
                             is_bid_placed[current_collection.get('collection')] = False
@@ -501,6 +503,12 @@ def sign_transaction():
     time.sleep(3)
 
 
+def send_line_notify(message):
+    if config.get('line_notify_token') == '':
+        return
+    line_notify.send_message(message)
+
+
 if __name__ == '__main__':
     setup_metamask()
     login_blur()
@@ -517,8 +525,8 @@ if __name__ == '__main__':
             print('-----------------------------------------------------')
             print('Error occurred. Restarting the whole process...')
             print('Closing redundant windows now.')
-            message = '\nError occurred. Restarting the whole process...' \
-                      '\nClosing redundant windows now.'
+            message = 'Error occurred. Restarting the whole process...\n' \
+                      'Closing redundant windows now.'
             line_notify.send_message(message)
             for window in driver.window_handles[1:]:
                 driver.switch_to.window(window)
@@ -526,16 +534,16 @@ if __name__ == '__main__':
             driver.switch_to.window(driver.window_handles[0])
             print('All redundant windows closed.')
             print('Canceling all bids now.')
-            message = '\nAll redundant windows closed.' \
-                      '\nCanceling all bids now.'
+            message = 'All redundant windows closed.\n' \
+                      'Canceling all bids now.'
             line_notify.send_message(message)
             cancel_all_bids()
             bid_placed.clear()
             is_bid_placed.clear()
             print('All bids canceled.')
             print('Now placing initial bids again.')
-            message = '\nAll bids canceled.' \
-                      '\nNow placing initial bids again.'
+            message = 'All bids canceled.\n' \
+                      'Now placing initial bids again.'
             line_notify.send_message(message)
             place_init_bids()
             continue
