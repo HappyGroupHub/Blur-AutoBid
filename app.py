@@ -227,8 +227,7 @@ def place_init_bids():
                         # try to place bid, may encounter error if lagged
                         while True:
                             try:
-                                place_bid(str(bid_sort_num),
-                                          current_collection.get('collection'))
+                                place_bid(str(bid_sort_num), current_collection)
                                 break
                             except (Exception, IndexError):
                                 driver.refresh()
@@ -323,22 +322,7 @@ def secure_bidding():
                                       f'New price: {bid_price}ETH'
                         line_notify.send_message(log_message)
                         if is_bid_placed.get(current_collection.get('collection')):
-
-                            # try to cancel bid, may encounter error if you bid that NFT successfully
-                            try:
-                                cancel_bid(current_collection.get('contract_address'))
-                            except TimeoutException:
-                                logging.warning('Cancel bid failed!')
-                                logging.warning(f'Your bid on {collection_name} might get accepted')
-                                logging.warning('Please check your wallet activity to confirm')
-                                logging.warning('Now continue to secure your bidding...')
-                                log_message = 'Cancel bid failed!\n' \
-                                              f'Your bid on {collection_name} might get accepted\n' \
-                                              'Please check your wallet activity to confirm\n' \
-                                              'Now continue to secure your bidding...\n'
-                                line_notify.send_message(log_message)
-                                bid_placed[current_collection.get('collection')] = 0
-
+                            cancel_bid(current_collection, collection_name)
                             is_bid_placed[current_collection.get('collection')] = False
                             driver.get(current_collection.get('bid_url'))
                             time.sleep(3)
@@ -346,8 +330,7 @@ def secure_bidding():
                     # try to place bid, may encounter error if lagged
                     while True:
                         try:
-                            place_bid(str(bid_sort_num),
-                                      current_collection.get('collection'))
+                            place_bid(str(bid_sort_num), current_collection)
                             break
                         except (Exception, IndexError):
                             driver.refresh()
@@ -371,14 +354,7 @@ def secure_bidding():
                         f'Bid price is too far to place [{current_collection.get("collection")}]')
                     logging.warning(
                         'Please try lower bid_amount_left_to_stop, canceling its bid now.')
-                    # try to cancel bid, may encounter error if you bid that NFT successfully
-                    try:
-                        cancel_bid(current_collection.get('contract_address'))
-                        logging.info('Bid canceled successfully.')
-                        message = '\nBid canceled successfully.'
-                    except TimeoutException:
-                        pass
-
+                    cancel_bid(current_collection, collection_name)
                     bid_placed[current_collection.get('collection')] = 0
                     is_bid_placed[current_collection.get('collection')] = False
                     break
@@ -388,7 +364,8 @@ def secure_bidding():
     secure_bidding()
 
 
-def place_bid(bid_sort_num, collection):
+def place_bid(bid_sort_num, current_collection):
+    collection = current_collection.get('collection')
     bid_price = f'/html/body/div/div/main/div/div[3]/div/div[2]/div/div[2]/div/div/div[{bid_sort_num}]/div[1]/div/div[2]/div[1]'
     bid_price = driver_get_text((By.XPATH, bid_price))
     bid_pool_balance = str
@@ -408,13 +385,17 @@ def place_bid(bid_sort_num, collection):
 
     collection_name = driver_get_text((By.XPATH, '//*[@id="OVERLINE"]/div/div[1]/div[2]/div'))
     if float(bid_pool_balance) < float(bid_price):
-        if collection not in bid_placed:
-            bid_placed[collection] = 0
         logging.warning('-----------------------------------------------------')
         logging.warning(f'Not enough balance to place bid! [{collection_name}]')
         logging.warning(f'Current balance: {bid_pool_balance}')
         logging.warning(f'Bid price needed: {bid_price}')
         logging.warning('-----------------------------------------------------')
+        if not bid_placed.get(collection):
+            is_bid_placed[collection] = False
+            bid_placed[collection] = 0
+        if is_bid_placed.get(collection):
+            logging.warning("Canceling it's previous bid now...")
+            cancel_bid(current_collection, collection_name)
     else:
         driver_click((By.XPATH, '//*[@id="__next"]/div/main/div/div[4]/button'))
         time.sleep(0.5)
@@ -462,11 +443,27 @@ def place_bid(bid_sort_num, collection):
         logging.warning('-----------------------------------------------------')
 
 
-def cancel_bid(contract_address):
+def cancel_bid(current_collection, collection_name):
+    collection = current_collection.get('collection')
+    contract_address = current_collection.get('contract_address')
     driver.get(f'https://blur.io/portfolio/bids?contractAddress={contract_address}')
     time.sleep(1)
-    driver_click((By.XPATH,
-                  '/html/body/div/div/main/div/div[4]/div/div[2]/div/div[2]/div/div/a/div[7]/div/button'))
+    try:
+        driver_click((By.XPATH,
+                      '/html/body/div/div/main/div/div[4]/div/div[2]/div/div[2]/div/div/a/div[7]/div/button'))
+        bid_placed[collection] = 0
+        is_bid_placed[collection] = False
+    except TimeoutException:
+        logging.warning('Cancel bid failed!')
+        logging.warning(f'Your bid on {collection_name} might get accepted')
+        logging.warning('Please check your wallet activity to confirm')
+        logging.warning('Now continue to secure your bidding...')
+        log_message = 'Cancel bid failed!\n' \
+                      f'Your bid on {collection_name} might get accepted\n' \
+                      'Please check your wallet activity to confirm\n' \
+                      'Now continue to secure your bidding...\n'
+        line_notify.send_message(log_message)
+        bid_placed[collection] = 0
     time.sleep(1)
 
 
