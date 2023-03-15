@@ -510,6 +510,9 @@ if __name__ == '__main__':
     setup_metamask()
     login_blur()
     init_blur()
+    logging.info('Canceling all bids now.')
+    cancel_all_bids()
+    logging.info('All bids canceled.')
     place_init_bids()
 
     # Secure bidding
