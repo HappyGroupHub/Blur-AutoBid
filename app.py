@@ -449,6 +449,9 @@ def cancel_bid(current_collection, collection_name):
     driver.get(f'https://blur.io/portfolio/bids?contractAddress={contract_address}')
     time.sleep(1)
     try:
+        WebDriverWait(driver, 1).until(ec.presence_of_element_located(
+            (By.XPATH,
+             '/html/body/div/div/main/div/div[4]/div/div[2]/div/div[2]/div/div/a/div[7]/div/button')))
         driver_click((By.XPATH,
                       '/html/body/div/div/main/div/div[4]/div/div[2]/div/div[2]/div/div/a/div[7]/div/button'))
         bid_placed[collection] = 0
@@ -478,6 +481,9 @@ def cancel_all_bids():
 
         # Try to cancel bid, if no bid is placed, pass
         try:
+            WebDriverWait(driver, 1).until(ec.presence_of_element_located(
+                (By.XPATH,
+                 '/html/body/div/div/main/div/div[4]/div/div[2]/div/div[2]/div/div/a/div[7]/div/button')))
             driver_click((By.XPATH,
                           '/html/body/div/div/main/div/div[4]/div/div[2]/div/div[2]/div/div/a/div[7]/div/button'))
         except TimeoutException:
