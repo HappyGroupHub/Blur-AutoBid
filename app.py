@@ -483,7 +483,7 @@ def cancel_all_bids():
         except TimeoutException:
             pass
 
-        time.sleep(3)
+        time.sleep(config.get('check_interval'))
 
 
 def sign_transaction():
