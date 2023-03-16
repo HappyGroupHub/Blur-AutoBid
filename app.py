@@ -526,11 +526,11 @@ if __name__ == '__main__':
         try:
             secure_bidding()
         except (Exception, IndexError) as error:
-            print('-----------------------------------------------------')
-            print(error)
-            print('-----------------------------------------------------')
-            print('Error occurred. Restarting the whole process...')
-            print('Closing redundant windows now.')
+            logging.error('-----------------------------------------------------')
+            logging.error(error)
+            logging.error('-----------------------------------------------------')
+            logging.error('Error occurred. Restarting the whole process...')
+            logging.info('Closing redundant windows now.')
             message = 'Error occurred. Restarting the whole process...\n' \
                       'Closing redundant windows now.'
             line_notify.send_message(message)
@@ -538,16 +538,16 @@ if __name__ == '__main__':
                 driver.switch_to.window(window)
                 driver.close()
             driver.switch_to.window(driver.window_handles[0])
-            print('All redundant windows closed.')
-            print('Canceling all bids now.')
+            logging.info('All redundant windows closed.')
+            logging.info('Canceling all bids now.')
             message = 'All redundant windows closed.\n' \
                       'Canceling all bids now.'
             line_notify.send_message(message)
             cancel_all_bids()
             bid_placed.clear()
             is_bid_placed.clear()
-            print('All bids canceled.')
-            print('Now placing initial bids again.')
+            logging.info('All bids canceled.')
+            logging.info('Now placing initial bids again.')
             message = 'All bids canceled.\n' \
                       'Now placing initial bids again.'
             line_notify.send_message(message)
